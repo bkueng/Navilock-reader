@@ -1,0 +1,60 @@
+[  220.331959] usb 4-2: uevent
+[  220.334581] usb 4-2: adding 4-2:1.0 (config #1, interface 0)
+[  220.334605] usb 4-2:1.0: uevent
+[  220.334631] usbserial_generic 4-2:1.0: usb_probe_interface
+[  220.334633] usbserial_generic 4-2:1.0: usb_probe_interface - got id
+[  220.334678] usb 4-2: adding 4-2:1.1 (config #1, interface 1)
+[  220.334692] usb 4-2:1.1: uevent
+[  220.334710] usbserial_generic 4-2:1.1: usb_probe_interface
+[  220.334712] usbserial_generic 4-2:1.1: usb_probe_interface - got id
+[  220.334752] drivers/usb/core/inode.c: creating file '004'
+[  220.334768] hub 4-0:1.0: state 7 ports 2 chg 0000 evt 0004
+[  285.454079] hub 4-0:1.0: state 7 ports 2 chg 0000 evt 0004
+[  285.454088] uhci_hcd 0000:00:1d.2: port 2 portsc 008a,00
+[  285.454099] hub 4-0:1.0: port 2, status 0100, change 0003, 12 Mb/s
+[  285.454102] usb 4-2: USB disconnect, address 4
+[  285.454104] usb 4-2: unregistering device
+[  285.454106] usb 4-2: usb_disable_device nuking all URBs
+[  285.454111] usb 4-2: unregistering interface 4-2:1.0
+[  285.454163] usb 4-2:1.0: uevent
+[  285.454179] usb 4-2: unregistering interface 4-2:1.1
+[  285.454220] usb 4-2:1.1: uevent
+[  285.454430] usb 4-2: uevent
+[  285.558055] hub 4-0:1.0: debounce: port 2: total 100ms stable 100ms status 0x100
+[  290.148388] hub 1-0:1.0: state 7 ports 8 chg 0000 evt 0040
+[  290.148398] ehci_hcd 0000:00:1d.7: GetStatus port 6 status 001803 POWER sig=j CSC CONNECT
+[  290.148405] hub 1-0:1.0: port 6, status 0501, change 0001, 480 Mb/s
+[  290.252039] hub 1-0:1.0: debounce: port 6: total 100ms stable 100ms status 0x501
+[  290.303216] ehci_hcd 0000:00:1d.7: port 6 full speed --> companion
+[  290.303219] ehci_hcd 0000:00:1d.7: GetStatus port 6 status 003801 POWER OWNER sig=j CONNECT
+[  290.303222] hub 1-0:1.0: port 6 not reset yet, waiting 50ms
+[  290.354039] ehci_hcd 0000:00:1d.7: GetStatus port 6 status 003002 POWER OWNER sig=se0 CSC
+[  290.354063] hub 1-0:1.0: state 7 ports 8 chg 0000 evt 0040
+[  290.454075] hub 4-0:1.0: state 7 ports 2 chg 0000 evt 0004
+[  290.454082] uhci_hcd 0000:00:1d.2: port 2 portsc 0093,00
+[  290.454089] hub 4-0:1.0: port 2, status 0101, change 0001, 12 Mb/s
+[  290.558053] hub 4-0:1.0: debounce: port 2: total 100ms stable 100ms status 0x101
+[  290.660050] usb 4-2: new full speed USB device using uhci_hcd and address 5
+[  290.780035] usb 4-2: ep0 maxpacket = 8
+[  290.802313] usb 4-2: skipped 4 descriptors after interface
+[  290.807312] usb 4-2: default language 0x0409
+[  290.828311] usb 4-2: udev 5, busnum 4, minor = 388
+[  290.828313] usb 4-2: New USB device found, idVendor=1ee4, idProduct=0001
+[  290.828315] usb 4-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[  290.828317] usb 4-2: Product: Travel GPS
+[  290.828319] usb 4-2: Manufacturer: Travel GPS
+[  290.828321] usb 4-2: SerialNumber: 00000001
+[  290.828439] usb 4-2: uevent
+[  290.828453] usb 4-2: usb_probe_device
+[  290.828455] usb 4-2: configuration #1 chosen from 1 choice
+[  290.829213] usb 4-2: uevent
+[  290.831308] usb 4-2: adding 4-2:1.0 (config #1, interface 0)
+[  290.831330] usb 4-2:1.0: uevent
+[  290.831354] usbserial_generic 4-2:1.0: usb_probe_interface
+[  290.831357] usbserial_generic 4-2:1.0: usb_probe_interface - got id
+[  290.831401] usb 4-2: adding 4-2:1.1 (config #1, interface 1)
+[  290.831416] usb 4-2:1.1: uevent
+[  290.831434] usbserial_generic 4-2:1.1: usb_probe_interface
+[  290.831436] usbserial_generic 4-2:1.1: usb_probe_interface - got id
+[  290.831476] drivers/usb/core/inode.c: creating file '005'
+[  290.831491] hub 4-0:1.0: state 7 ports 2 chg 0000 evt 0004

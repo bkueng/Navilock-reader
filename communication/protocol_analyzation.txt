@@ -1,0 +1,126 @@
+## by beat küng
+# 15.10.2010
+
+serial protocol from navilock
+=============================
+
+general
+-------
+- request always 6 bytes (?!), first 2 bytes are the command
+- answer len depends on request
+
+
+read tracks info
+----------------
+
+request:
+ 54 46 00 00 NN NN
+NNNN: track number (big endian), start with 0 and increase until answer is 24 bytes of 0xFF
+Answer: always 24 bytes
+
+
+
+answers to track request:
+
+#  00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+   -----------------------------------------------------------------------
+4: AC 03 00 00 70 A1 00 00 DA 07 DA 07 00 00 05 09 10 36 16 05 09 11 36 22
+3: E0 03 00 00 70 63 00 00 DA 07 DA 07 00 00 05 09 0A 35 33 05 09 0B 27 39
+2: 48 05 00 00 D0 0E 00 00 DA 07 DA 07 02 00 05 08 0D 24 08 05 08 0F 16 33
+1: 0A 00 00 00 00 0E 00 00 DA 07 DA 07 03 00 05 08 09 0F 04 05 08 09 2A 37
+   -----------------------------------------------------------------------
+   CC CC CC CC AA AA AA AA YY YY YY YY cc    MM DD hh mm ss MM DD hh mm ss
+
+1: oldest=first response, 4: newest=last response
+
+DD: day
+MM: month
+YY YY: Year (little endian)
+hh: hour
+mm: minute
+ss: second
+time: first is start, second is end
+CCCCCCCC: count (little endian) (track points including poi's)
+AAAAAAAA: start address for request Adress (little endian)
+cc: point of interest count -> add it to count to get all
+
+
+
+read one track
+--------------
+
+use start address and read 16 bytes -> increase address by 16 bytes -> do that count times
+request:
+ 54 50 AA AA AA AA
+-> address is big endian!
+
+
+
+answers for data for track 4 (has no poi's):
+
+00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15
+-----------------------------------------------
+BB C1 27 00 FE 60 2A 00 00 30 10 36 16 FF 00 00
+B1 C1 27 00 18 61 2A 00 00 2F 10 36 19 FF 65 02           
+AA C1 27 00 30 61 2A 00 00 2F 10 36 1B FF 65 02 
+B1 C1 27 00 57 61 2A 00 00 32 10 36 1E FF 64 02     
+C0 C1 27 00 7D 61 2A 00 00 3D 10 36 21 FF 65 02   
+B1 C1 27 00 C1 61 2A 00 00 00 10 36 26 FF 64 02    
+B6 C1 27 00 E6 61 2A 00 00 33 10 36 29 FF 64 02
+[...]
+
+
+track 3:
+
+ 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15
+ -----------------------------------------------
+ 7B FA 27 00 D5 61 2B 00 00 13 0A 35 33 FF 9D 02
+ 85 FA 27 00 DD 61 2B 00 00 10 0A 35 35 FF 9D 02
+ 6F FA 27 00 DF 61 2B 00 00 0E 0A 35 38 FF 9C 02
+ 62 FA 27 00 DD 61 2B 00 00 0C 0A 35 39 FF 9D 02
+ 64 FA 27 00 DC 61 2B 00 00 0A 0A 35 3B FF 9C 02 
+ 5C FA 27 00 DC 61 2B 00 00 0C 0A 36 00 FF 9C 02 
+ 46 FA 27 00 DD 61 2B 00 00 09 0A 36 02 FF 9C 02 
+ 55 FA 27 00 E3 61 2B 00 00 0B 0A 36 03 FF 9C 02
+ 54 FA 27 00 E7 61 2B 00 00 0E 0A 36 05 FF 9D 02 
+ 48 FA 27 00 E7 61 2B 00 00 13 0A 36 07 FF 9C 02 
+ 32 FA 27 00 E8 61 2B 00 00 13 0A 36 09 FF 9D 02 
+ 25 FA 27 00 E8 61 2B 00 00 17 0A 36 0B FF 9C 02 
+ 2D FA 27 00 ED 61 2B 00 00 14 0A 36 0D FF 9C 02           
+ -----------------------------------------------
+ LA LA LA LA LO LO LO LO TT SS hh mm ss    PP PP
+
+
+LALALALA: latitude (little endian)
+LOLOLOLO: longitude (little endian)
+
+hh: hour
+mm: minute
+ss: second
+
+PPPP: altitude [m] (little endian)
+
+TT: type (?): POI/point  (point = 0x00, POI = 0x01)
+SS: speed  -> which unit?
+
+
+
+
+response <-> gpx file comparison 
+(track 3)
+
+ 00 27 FA 7B  lat="26.334083333" = 26 20 2.7			 	02 9D  669.000000
+ 00 27 FA 85  lat="26.334361111"						02 9D  669.000000
+ 00 27 FA 6F  lat="26.333750000" 						02 9C  669.000000
+ 00 27 FA 62  lat="26.333388889" 						02 9D  669.000000
+
+
+0x27FA7B = 2620027  ->  26 20min 2.7sec = 8.667416667 !
+
+
+and negative???
+
+
+
+
+

@@ -1,0 +1,27 @@
+
+set total distance to 0:
+Request: 08-05-2010 10:20:09.29064 (+14.9047 seconds)
+ 43 44 00 00 00 00                                 CD....          
+Answer: 08-05-2010 10:20:09.29064 (+0.0000 seconds)
+ 43 44 01                                          CD.             
+
+set total distance to 1:
+Request: 08-05-2010 10:25:37.86664 (+327.5758 seconds)
+ 43 44 00 00 00 0A                                 CD....          
+Answer: 08-05-2010 10:25:37.88164 (+0.0156 seconds)
+ 43 44 01    
+
+ set total distance to 2:
+ 43 44 00 00 00 14                                 CD....
+ 43 44 01  
+
+ 
+ 
+read trace:
+54 46 00 00 00 00                                 TF....          
+Answer: 08-05-2010 10:30:57.93064 (+0.0156 seconds)
+ FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF   ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ
+ FF FF FF FF FF FF FF FF                           ÿÿÿÿÿÿÿÿ
+
+ means no file!
+ 
