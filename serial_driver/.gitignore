@@ -1,0 +1,13 @@
+
+*~
+*.o
+*.ko
+*.mod.c
+
+/Module.*
+/modules.*
+
+
+.*
+!.gitignore
+!.*project
