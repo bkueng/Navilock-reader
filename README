@@ -1,0 +1,63 @@
+## by Beat Küng
+# 16.05.2010
+
+
+## compile & run the driver ##
+
+to communicate with the device, a driver needs to be built and started, 
+before you can download any tracks.
+
+
+buid the driver with (kernel source headers must be installed):
+$ cd serial_driver
+$ make
+
+load usbserial driver:
+# modprobe usbserial
+
+load navilock driver:
+# insmod navilock.ko
+
+plug in the device
+-> dmesg output:
+usb 3-2: navilock converter now attached to ttyUSB1
+-> usbserial file:
+# cat /proc/tty/driver/usbserial
+0: module:navilock name:"navilock" vendor:1ee4 product:0001 num_ports:1 port:1 path:usb-0000:00:1d.2-2
+1: module:navilock name:"navilock" vendor:1ee4 product:0001 num_ports:1 port:1 path:usb-0000:00:1d.2-2
+
+two new devices under /dev should have been created. Most likely /dev/ttyUSB0 and /dev/ttyUSB1. 
+
+unload the driver:
+# rmmod navilock
+
+
+
+## navilock reader ##
+
+the navilock reader is used to read the tracks from the navilock device and stores them
+on the harddisk.
+
+
+compile navilock reader:
+$ cd reader
+$ make
+
+if everything worked you should now be able to use navilock_reader.
+type
+$ ./navilock_reader
+without any arguments to see the supported parameters. If you are not using any other 
+usb serial devices, the device most likely is called /dev/ttyUSB1.
+
+
+
+
+
+
+
+
+
+
+
+
+
