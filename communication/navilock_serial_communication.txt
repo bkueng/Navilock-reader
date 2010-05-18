@@ -14,6 +14,10 @@ Answer: 08-05-2010 10:25:37.88164 (+0.0156 seconds)
  set total distance to 2:
  43 44 00 00 00 14                                 CD....
  43 44 01  
+ 
+ set distance to 99999:
+ 31	0.00047660	NaviSportBike.e	IRP_MJ_WRITE	USBSER000	SUCCESS	Length 6: 43 44 00 0F 42 36 	
+591	0.00000335	NaviSportBike.e	IRP_MJ_READ	USBSER000	SUCCESS	Length 3: 43 44 01 	
 
  
  
