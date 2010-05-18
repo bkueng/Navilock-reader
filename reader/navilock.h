@@ -160,17 +160,21 @@ public:
 	/*read all tracks with the points, also reads the infos if they are not already loaded */
 	void readTracks();
 	
-	/*
-	deleteTracks()
-	setTotalDistance(...)
-	 */
+	/* resets the flash and removes all tracks */
+	void deleteTracks();
+	
+	void setTotalDistance(double new_distance);
+	
+	/* read bytes from internal flash memory. how many bytes are read is defined by the device
+	 * returns the count of read bytes or -1 on error */
+	int readAddr(uint addr, char* buffer, int buffer_size);
 	
 	const vector<ETrack>& tracks() const { return(m_tracks); }
 private:
 	/* returns true if track exists and buffer has data, false otherwise */
 	bool readTrackInfo(ushort track, char* buffer, int buffer_size);
 	
-	bool readPoint(uint addr, char* buffer, int buffer_size);
+	
 	
 	CDataPoint& m_device;
 	

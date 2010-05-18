@@ -25,9 +25,11 @@ enum EParseState {
 enum ETask {
 	Task_get_tracks=0,
 	Task_print_track_info,
-	Task_delete_tracks
+	Task_delete_tracks,
+	Task_set_distance,
+	Task_read_addr
 };
-#define TASK_COUNT 3
+#define TASK_COUNT 5
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////
  ** class CMain

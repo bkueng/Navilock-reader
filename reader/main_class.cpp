@@ -38,7 +38,7 @@ void CMain::init(int argc, char *argv[]) {
 void CMain::parseCommandLine(int argc, char *argv[]) {
 	vector<string> args;
 	for(int i=0; i<argc; ++i) args.push_back(argv[i]);
-	args.push_back(""); //to avoid buffer overflow
+	args.push_back(""); args.push_back(""); //to avoid buffer overflow
 	
 	m_arg_variables.clear();
 	
@@ -49,7 +49,13 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 		} else if(arg=="--get-tracks" || arg=="-t") {
 			pushTask(Task_get_tracks);
 		} else if(arg=="--info" || arg=="-i") {
-			pushTask(Task_print_track_info);			
+			pushTask(Task_print_track_info);
+		} else if(arg=="--reset" || arg=="-r") {
+			pushTask(Task_delete_tracks);
+		} else if(arg=="--set-distance") {
+			pushTask(Task_set_distance);	
+			m_arg_variables["distance"]=args[i+1];
+			++i;
 		} else if(arg=="--device" || arg=="-d") {
 			m_arg_variables["device"]=args[i+1];
 			++i;
@@ -59,6 +65,11 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 		} else if(arg=="--format" || arg=="-f") {
 			m_arg_variables["format"]=toLower(args[i+1]);
 			++i;
+		} else if(arg=="--read-addr") {
+			pushTask(Task_read_addr);	
+			m_arg_variables["addr_offset"]=toLower(args[i+1]);
+			m_arg_variables["addr_count"]=toLower(args[i+2]);
+			i+=2;
 		} else if(arg=="--verbose" || arg=="-v") {
 			m_arg_variables["verbose"]="1";
 		} else {
@@ -96,7 +107,8 @@ void CMain::exec() {
 
 void CMain::printHelp() {
 	printf("Usage:\n"
-		" "APP_NAME" [-v] -d <device> [-t [-o <path>] [-f <format>]] [-i]\n"
+		" "APP_NAME" [-v] -d <device> [-t [-o <path>] [-f <format>]] [-i] [-r]\n"
+		" "APP_NAME" [-v] -d <device> [--set-distance <distance>]\n"
 		"  -d, --device <device>           set the device to read from/write to\n"
 		"                                  <device>: e.g. /dev/ttyUSB1\n"
 		"  -t, --get-tracks                read the tracks and save them to file\n"
@@ -107,6 +119,9 @@ void CMain::printHelp() {
 		"  -f, --format <format>           file output format\n"
 		"                                  supported are gpx and txt\n"
 		"                                  default is txt\n"
+		"  -r, --reset                     delete all tracks\n"
+		"  --set-distance <distance>       set the total km count to <distance>\n"
+		"  --read-addr <offset> <count>    read flash memory and output hex values\n"
 		"  -i, --info                      print track information on device\n"
 		"  -v, --verbose                   print debug messages\n"
 		"  -h, --help                      print this message\n"
@@ -215,6 +230,50 @@ void CMain::processArgs() {
 		delete(persistence);
 	}
 	
+	
+	if(m_tasks[Task_delete_tracks]) {
+		navilock.deleteTracks();
+	}
+	
+	
+	if(m_tasks[Task_set_distance]) {
+		string& distance=m_arg_variables["distance"];
+		if(distance.length() > 0) {
+			double dist;
+			ASSERT_THROW_s(sscanf(distance.c_str(), "%lf", &dist)==1, "Failed to parse the distance %s", distance.c_str());
+			ASSERT_THROW_s(dist>=0.0 && dist<99999.9, "Distance out of bounds (0 <= dist < 99999.9)");
+			navilock.setTotalDistance(dist);
+		}
+	}
+	
+	
+	if(m_tasks[Task_read_addr]) {
+		uint offset, count;
+		int ret=0;
+		if(sscanf(m_arg_variables["addr_offset"].c_str(), "%u", &offset)!=1) offset=0;
+		if(sscanf(m_arg_variables["addr_count"].c_str(), "%u", &count)!=1) count=16;
+		char buffer[50];
+		bool bFirst=true;
+		
+		for(uint addr=offset; addr<offset+count && ret!=-1; addr+=ret) {
+			
+			ret=navilock.readAddr(addr, buffer, sizeof(buffer));
+			
+			if(bFirst && ret>0) {
+				printf("      ");
+				for(int i=0; i<ret; ++i) printf("%2i ", i);
+				printf("\n     ");
+				for(int i=0; i<ret; ++i) printf("---");
+				printf("\n");
+				bFirst=false;
+			}
+			
+			printf("%4i: ", addr);
+			for(int i=0; i<ret; ++i) printf("%02X ", (int)(unsigned char)buffer[i]);
+			printf("\n");
+		}
+		
+	}
 }
 
 

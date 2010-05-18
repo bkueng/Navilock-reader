@@ -76,7 +76,7 @@ void CSerial::initConnection(unsigned int baudrate) {
 	tio.c_lflag = 0;
 	
 	tio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-	tio.c_cc[VMIN]     = 4;   /* blocking read until 4 chars received */
+	tio.c_cc[VMIN]     = 3;   /* blocking read until 3 chars received */
 	
 	tcflush(m_fd, TCIFLUSH);
 	ASSERT_THROW(tcsetattr(m_fd,TCSANOW, &tio)==0, EDEVICE);

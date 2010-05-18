@@ -252,10 +252,11 @@ void CNavilock::readTrack(size_t idx) {
 		
 		if(track.point_count>0) {
 			track.points=new EPoint[track.point_count];
+			int ret;
 			
 			for(uint i=0; i<track.point_count; ++i) {
-				ASSERT_THROW_e(readPoint(track.start_addr+i*0x10, buffer, IO_BUFFER_SIZE), EDEVICE
-						, "Failed to read addr %u from track %i", track.start_addr+i, idx);
+				ASSERT_THROW_e((ret=readAddr(track.start_addr+i*0x10, buffer, IO_BUFFER_SIZE))==16, EDEVICE
+						, "Failed to read addr %u from track %i (returned with %i)", track.start_addr+i, idx, ret);
 				/* parse buffer */
 				EPoint& point=track.points[i];
 				//latitude
@@ -291,8 +292,7 @@ void CNavilock::readTrack(size_t idx) {
 }
 
 
-bool CNavilock::readPoint(uint addr, char* buffer, int buffer_size) {
-	if(buffer_size<16) return(false);
+int CNavilock::readAddr(uint addr, char* buffer, int buffer_size) {
 	
 	char request[]= { 0x54, 0x50, 0x00, 0x00, 0x00, 0x00 };
 	
@@ -302,16 +302,60 @@ bool CNavilock::readPoint(uint addr, char* buffer, int buffer_size) {
 	request[5]=(addr & 0xFF);
 	
 	m_device.write(request, sizeof(request));
-	int ret=m_device.read(buffer, buffer_size);
-	ASSERT_THROW(ret==16, EDEVICE);
-	
-	return(true);
+	return(m_device.read(buffer, buffer_size));
 }
 
 void CNavilock::readTracks() {
 	readTrackInfos();
 	for(size_t i=0; i<m_tracks.size(); ++i) readTrack(i);
 }
+
+
+void CNavilock::deleteTracks() {
+	
+	printf("Removing all tracks...\n");
+	
+	char request[]= { 0x45, 0x52, 0x00, 0x00, 0x00, 0x00 };
+	m_device.write(request, sizeof(request));
+	
+	char response[40];
+	int ret=3;
+	memset(response, 0, sizeof(response));
+	while(response[2]<0x64 && ret==3) {
+		int ret=m_device.read(response, sizeof(response));
+		
+		if(ret==3) printf("\b\b\b%2i%%", (int)(unsigned char)response[2]);
+		fflush(stdout);
+		
+		usleep(200000);
+	}
+	printf("\n");
+}
+
+
+void CNavilock::setTotalDistance(double new_distance) {
+	
+	char request[]= { 0x43, 0x44, 0x00, 0x00, 0x00, 0x00 };
+	
+	int dist=(int)(new_distance*10);
+	request[2]=(dist>>24) & 0xFF;
+	request[3]=(dist>>16) & 0xFF;
+	request[4]=(dist>>8) & 0xFF;
+	request[5]=(dist & 0xFF);
+	m_device.write(request, sizeof(request));
+	
+	char answer[20];
+	int ret=m_device.read(answer, sizeof(answer));
+	ASSERT_THROW_s(ret==3, "Failed to get a response after setting the total Distance to %lf", new_distance);
+	//we don't care about the content of the response
+	
+}
+
+
+
+
+
+
 
 
 
