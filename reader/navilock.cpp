@@ -252,10 +252,11 @@ void CNavilock::readTrack(size_t idx) {
 		
 		if(track.point_count>0) {
 			track.points=new EPoint[track.point_count];
+			int ret;
 			
 			for(uint i=0; i<track.point_count; ++i) {
-				ASSERT_THROW_e(readPoint(track.start_addr+i*0x10, buffer, IO_BUFFER_SIZE), EDEVICE
-						, "Failed to read addr %u from track %i", track.start_addr+i, idx);
+				ASSERT_THROW_e((ret=readAddr(track.start_addr+i*0x10, buffer, IO_BUFFER_SIZE))==16, EDEVICE
+						, "Failed to read addr %u from track %i (returned with %i)", track.start_addr+i, idx, ret);
 				/* parse buffer */
 				EPoint& point=track.points[i];
 				//latitude
@@ -291,8 +292,7 @@ void CNavilock::readTrack(size_t idx) {
 }
 
 
-bool CNavilock::readPoint(uint addr, char* buffer, int buffer_size) {
-	if(buffer_size<16) return(false);
+int CNavilock::readAddr(uint addr, char* buffer, int buffer_size) {
 	
 	char request[]= { 0x54, 0x50, 0x00, 0x00, 0x00, 0x00 };
 	
@@ -302,10 +302,7 @@ bool CNavilock::readPoint(uint addr, char* buffer, int buffer_size) {
 	request[5]=(addr & 0xFF);
 	
 	m_device.write(request, sizeof(request));
-	int ret=m_device.read(buffer, buffer_size);
-	ASSERT_THROW(ret==16, EDEVICE);
-	
-	return(true);
+	return(m_device.read(buffer, buffer_size));
 }
 
 void CNavilock::readTracks() {

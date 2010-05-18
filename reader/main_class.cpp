@@ -38,7 +38,7 @@ void CMain::init(int argc, char *argv[]) {
 void CMain::parseCommandLine(int argc, char *argv[]) {
 	vector<string> args;
 	for(int i=0; i<argc; ++i) args.push_back(argv[i]);
-	args.push_back(""); //to avoid buffer overflow
+	args.push_back(""); args.push_back(""); //to avoid buffer overflow
 	
 	m_arg_variables.clear();
 	
@@ -63,6 +63,11 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 		} else if(arg=="--format" || arg=="-f") {
 			m_arg_variables["format"]=toLower(args[i+1]);
 			++i;
+		} else if(arg=="--read-addr") {
+			pushTask(Task_read_addr);	
+			m_arg_variables["addr_offset"]=toLower(args[i+1]);
+			m_arg_variables["addr_count"]=toLower(args[i+2]);
+			i+=2;
 		} else if(arg=="--verbose" || arg=="-v") {
 			m_arg_variables["verbose"]="1";
 		} else {
@@ -113,6 +118,7 @@ void CMain::printHelp() {
 		"                                  supported are gpx and txt\n"
 		"                                  default is txt\n"
 		"  --set-distance <distance>       set the total km count to <distance>\n"
+		"  --read-addr <offset> <count>    read flash memory and output hex values\n"
 		"  -i, --info                      print track information on device\n"
 		"  -v, --verbose                   print debug messages\n"
 		"  -h, --help                      print this message\n"
@@ -231,6 +237,34 @@ void CMain::processArgs() {
 		}
 	}
 	
+	
+	if(m_tasks[Task_read_addr]) {
+		uint offset, count;
+		int ret=0;
+		if(sscanf(m_arg_variables["addr_offset"].c_str(), "%u", &offset)!=1) offset=0;
+		if(sscanf(m_arg_variables["addr_count"].c_str(), "%u", &count)!=1) count=16;
+		char buffer[50];
+		bool bFirst=true;
+		
+		for(uint addr=offset; addr<offset+count && ret!=-1; addr+=ret) {
+			
+			ret=navilock.readAddr(addr, buffer, sizeof(buffer));
+			
+			if(bFirst && ret>0) {
+				printf("      ");
+				for(int i=0; i<ret; ++i) printf("%2i ", i);
+				printf("\n     ");
+				for(int i=0; i<ret; ++i) printf("---");
+				printf("\n");
+				bFirst=false;
+			}
+			
+			printf("%4i: ", addr);
+			for(int i=0; i<ret; ++i) printf("%02X ", (int)(unsigned char)buffer[i]);
+			printf("\n");
+		}
+		
+	}
 }
 
 
