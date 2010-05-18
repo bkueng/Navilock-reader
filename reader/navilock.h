@@ -162,8 +162,9 @@ public:
 	
 	/*
 	deleteTracks()
-	setTotalDistance(...)
-	 */
+	*/
+	void setTotalDistance(double new_distance);
+	 
 	
 	const vector<ETrack>& tracks() const { return(m_tracks); }
 private:

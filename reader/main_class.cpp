@@ -49,7 +49,11 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 		} else if(arg=="--get-tracks" || arg=="-t") {
 			pushTask(Task_get_tracks);
 		} else if(arg=="--info" || arg=="-i") {
-			pushTask(Task_print_track_info);			
+			pushTask(Task_print_track_info);	
+		} else if(arg=="--set-distance") {
+			pushTask(Task_set_distance);	
+			m_arg_variables["distance"]=args[i+1];
+			++i;
 		} else if(arg=="--device" || arg=="-d") {
 			m_arg_variables["device"]=args[i+1];
 			++i;
@@ -97,6 +101,7 @@ void CMain::exec() {
 void CMain::printHelp() {
 	printf("Usage:\n"
 		" "APP_NAME" [-v] -d <device> [-t [-o <path>] [-f <format>]] [-i]\n"
+		" "APP_NAME" [-v] -d <device> [--set-distance <distance>]\n"
 		"  -d, --device <device>           set the device to read from/write to\n"
 		"                                  <device>: e.g. /dev/ttyUSB1\n"
 		"  -t, --get-tracks                read the tracks and save them to file\n"
@@ -107,6 +112,7 @@ void CMain::printHelp() {
 		"  -f, --format <format>           file output format\n"
 		"                                  supported are gpx and txt\n"
 		"                                  default is txt\n"
+		"  --set-distance <distance>       set the total km count to <distance>\n"
 		"  -i, --info                      print track information on device\n"
 		"  -v, --verbose                   print debug messages\n"
 		"  -h, --help                      print this message\n"
@@ -213,6 +219,16 @@ void CMain::processArgs() {
 		}
 		
 		delete(persistence);
+	}
+	
+	if(m_tasks[Task_set_distance]) {
+		string& distance=m_arg_variables["distance"];
+		if(distance.length() > 0) {
+			double dist;
+			ASSERT_THROW_s(sscanf(distance.c_str(), "%lf", &dist)==1, "Failed to parse the distance %s", distance.c_str());
+			ASSERT_THROW_s(dist>=0.0 && dist<99999.9, "Distance out of bounds (0 <= dist < 99999.9)");
+			navilock.setTotalDistance(dist);
+		}
 	}
 	
 }

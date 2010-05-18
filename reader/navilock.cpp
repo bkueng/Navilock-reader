@@ -314,5 +314,30 @@ void CNavilock::readTracks() {
 }
 
 
+void CNavilock::setTotalDistance(double new_distance) {
+	
+	char request[]= { 0x43, 0x44, 0x00, 0x00, 0x00, 0x00 };
+	
+	int dist=(int)(new_distance*10);
+	request[2]=(dist>>24) & 0xFF;
+	request[3]=(dist>>16) & 0xFF;
+	request[4]=(dist>>8) & 0xFF;
+	request[5]=(dist & 0xFF);
+	m_device.write(request, sizeof(request));
+	
+	char answer[20];
+	int ret=m_device.read(answer, sizeof(answer));
+	ASSERT_THROW_s(ret==3, "Failed to get a response after setting the total Distance to %lf", new_distance);
+	//we don't care about the content of the response
+	
+}
+
+
+
+
+
+
+
+
 
 
