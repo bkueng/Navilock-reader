@@ -49,7 +49,9 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 		} else if(arg=="--get-tracks" || arg=="-t") {
 			pushTask(Task_get_tracks);
 		} else if(arg=="--info" || arg=="-i") {
-			pushTask(Task_print_track_info);	
+			pushTask(Task_print_track_info);
+		} else if(arg=="--reset" || arg=="-r") {
+			pushTask(Task_delete_tracks);
 		} else if(arg=="--set-distance") {
 			pushTask(Task_set_distance);	
 			m_arg_variables["distance"]=args[i+1];
@@ -105,7 +107,7 @@ void CMain::exec() {
 
 void CMain::printHelp() {
 	printf("Usage:\n"
-		" "APP_NAME" [-v] -d <device> [-t [-o <path>] [-f <format>]] [-i]\n"
+		" "APP_NAME" [-v] -d <device> [-t [-o <path>] [-f <format>]] [-i] [-r]\n"
 		" "APP_NAME" [-v] -d <device> [--set-distance <distance>]\n"
 		"  -d, --device <device>           set the device to read from/write to\n"
 		"                                  <device>: e.g. /dev/ttyUSB1\n"
@@ -117,6 +119,7 @@ void CMain::printHelp() {
 		"  -f, --format <format>           file output format\n"
 		"                                  supported are gpx and txt\n"
 		"                                  default is txt\n"
+		"  -r, --reset                     delete all tracks\n"
 		"  --set-distance <distance>       set the total km count to <distance>\n"
 		"  --read-addr <offset> <count>    read flash memory and output hex values\n"
 		"  -i, --info                      print track information on device\n"
@@ -226,6 +229,12 @@ void CMain::processArgs() {
 		
 		delete(persistence);
 	}
+	
+	
+	if(m_tasks[Task_delete_tracks]) {
+		navilock.deleteTracks();
+	}
+	
 	
 	if(m_tasks[Task_set_distance]) {
 		string& distance=m_arg_variables["distance"];

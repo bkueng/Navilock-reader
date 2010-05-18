@@ -311,6 +311,28 @@ void CNavilock::readTracks() {
 }
 
 
+void CNavilock::deleteTracks() {
+	
+	printf("Removing all tracks...\n");
+	
+	char request[]= { 0x45, 0x52, 0x00, 0x00, 0x00, 0x00 };
+	m_device.write(request, sizeof(request));
+	
+	char response[40];
+	int ret=3;
+	memset(response, 0, sizeof(response));
+	while(response[2]<0x64 && ret==3) {
+		int ret=m_device.read(response, sizeof(response));
+		
+		if(ret==3) printf("\b\b\b%2i%%", (int)(unsigned char)response[2]);
+		fflush(stdout);
+		
+		usleep(200000);
+	}
+	printf("\n");
+}
+
+
 void CNavilock::setTotalDistance(double new_distance) {
 	
 	char request[]= { 0x43, 0x44, 0x00, 0x00, 0x00, 0x00 };

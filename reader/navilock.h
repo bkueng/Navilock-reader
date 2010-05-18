@@ -160,9 +160,9 @@ public:
 	/*read all tracks with the points, also reads the infos if they are not already loaded */
 	void readTracks();
 	
-	/*
-	deleteTracks()
-	*/
+	/* resets the flash and removes all tracks */
+	void deleteTracks();
+	
 	void setTotalDistance(double new_distance);
 	
 	/* read bytes from internal flash memory. how many bytes are read is defined by the device
