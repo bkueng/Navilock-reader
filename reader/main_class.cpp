@@ -189,6 +189,8 @@ void CMain::processArgs() {
 							track.end_date, track.end_time)).c_str());
 			
 		}
+		
+		printf("Total distance: %.1lfkm\n", navilock.totalDistance());
 	}
 	
 	if(m_tasks[Task_get_tracks]) {

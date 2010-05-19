@@ -351,6 +351,15 @@ void CNavilock::setTotalDistance(double new_distance) {
 	
 }
 
+double CNavilock::totalDistance() {
+	char buffer[20];
+	int ret=readAddr(0, buffer, sizeof(buffer));
+	ASSERT_THROW_e(ret>=16, EDEVICE, "Failed to read the total distance");
+	
+	uint km=READ_UINT(buffer, 12);
+	return((double)km/10.0);
+}
+
 
 
 
