@@ -163,7 +163,9 @@ public:
 	/* resets the flash and removes all tracks */
 	void deleteTracks();
 	
+	/* distance is in km */
 	void setTotalDistance(double new_distance);
+	double totalDistance();
 	
 	/* read bytes from internal flash memory. how many bytes are read is defined by the device
 	 * returns the count of read bytes or -1 on error */
