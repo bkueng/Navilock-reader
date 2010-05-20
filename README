@@ -62,6 +62,10 @@ usb serial devices, the device most likely is called /dev/ttyUSB1.
 
 
 
+== firmware ==
+
+the navilock reader was tested with the firmware
+61718 - NL-130BK Firmware update V010
 
 
 
