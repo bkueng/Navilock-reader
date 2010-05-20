@@ -20,7 +20,8 @@ else
 default:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
 install:
-	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install
+	$(MAKE) INSTALL_MOD_DIR=kernel/drivers/usb/serial -C $(KERNELDIR) M=$(PWD) modules_install
+	depmod -a
 clean:
 	rm *.o *.ko *.mod.c .*.cmd || true
 endif
