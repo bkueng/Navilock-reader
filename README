@@ -1,6 +1,10 @@
 ## by Beat Küng
 # 16.05.2010
 
+The navilock reader is a command line tool to manage a Navilock NL-130BK
+GPS Tracking device under linux. The main tasks are to store tracks
+in gpx or text file format and deleting old tracks.
+
 
 == compile & install the driver ==
 
