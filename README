@@ -2,7 +2,7 @@
 # 16.05.2010
 
 
-## compile & run the driver ##
+== compile & install the driver ==
 
 to communicate with the device, a driver needs to be built and started, 
 before you can download any tracks.
@@ -12,14 +12,16 @@ buid the driver with (kernel source headers must be installed):
 $ cd serial_driver
 $ make
 
-load usbserial driver:
-# modprobe usbserial
+if you see something like:
+make: Nothing to be done for `default'.
+you need to install the kernel source
 
-load navilock driver:
-# insmod navilock.ko
+now you can install the driver with
+# sudo make install
 
-plug in the device
--> dmesg output:
+plug in the device and check if everything works:
+$ dmesg 
+output should contain something like:
 usb 3-2: navilock converter now attached to ttyUSB1
 -> usbserial file:
 # cat /proc/tty/driver/usbserial
@@ -28,12 +30,21 @@ usb 3-2: navilock converter now attached to ttyUSB1
 
 two new devices under /dev should have been created. Most likely /dev/ttyUSB0 and /dev/ttyUSB1. 
 
+
+= run the driver without installation =
+
+this driver depends on the usbserial driver, so you need to load it first:
+# modprobe usbserial
+
+load navilock driver:
+# insmod navilock.ko
+
 unload the driver:
 # rmmod navilock
 
 
 
-## navilock reader ##
+== navilock reader ==
 
 the navilock reader is used to read the tracks from the navilock device and stores them
 on the harddisk.
