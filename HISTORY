@@ -1,0 +1,8 @@
++ Release v1.0
+ navilock usb serial driver
+
+ navilock reader
++ read tracks and stores in txt or gpx file format
++ print track information
++ get/set total distance
++ delete all tracks
