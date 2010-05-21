@@ -1,0 +1,65 @@
+#! /bin/bash
+
+#this script reads the new tracks and stores them
+
+set -e -o pipefail
+
+SCRIPT_DIR=$(dirname "$BASH_SOURCE")
+TRACK_FOLDER=$(readlink -f "$SCRIPT_DIR/tracks")
+CONF_FILE=$(readlink -f "$SCRIPT_DIR/.config")
+NAVILOCK_READER=$(readlink -f "$SCRIPT_DIR/navilock_reader")
+
+
+get_config() {
+	# get_config $1 $2: load a configuration from a configuration file
+	# $1: the name of the configuration file
+	# $2: name of the configuration variable
+	
+	local CONFIG_FILE=$1 
+	local NAME_LOC=$2
+	local EXPR="s/^#?$NAME_LOC[\t ]*=[\t ]*(.*)[\t ]*$/\1/p"
+	[ -e "$CONFIG_FILE" ] && sed -rn "$EXPR" < "$CONFIG_FILE" | head -n 1 || true
+}
+
+ask() {
+	# ask $1 $2: ask the user something and return the answer
+	# $1: the default value
+	# $2: the prompt
+	
+	read -e -p "$2 [$1]: " 
+	[ "$REPLY" ] && echo $REPLY || echo $1
+}
+
+variable_read() {
+	# variable_read $1: read the value of the variable with the given name
+	# $1: the name of the variable
+	
+	eval echo \"\$"$1"\"
+}
+
+variable_write() {
+	# variable_write $1 $2: write a value to the variable with the given name
+	# $1: the name of the variable
+	# $2: the value to write
+	
+	eval "$1"='$2'
+}
+
+
+
+DEVICE=$(get_config "$CONF_FILE" "DEVICE")
+
+{
+	[ ! "$DEVICE" ] && DEVICE=$(ask "/dev/ttyUSB1" "Enter device:") >/dev/null
+	echo "DEVICE = $DEVICE"
+} > "${CONF_FILE}~"
+
+# Move the new configuration file in place.
+mv -f "${CONF_FILE}~" "${CONF_FILE}"
+
+
+$NAVILOCK_READER --device "$DEVICE" --get-tracks --output "$TRACK_FOLDER" --new-only --format txt --format gpx --info
+
+
+
+

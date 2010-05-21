@@ -6,5 +6,7 @@
 /build*
 /navilock_reader
 /tst
+/tracks/*
+/.config
 
 *.log

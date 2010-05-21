@@ -18,12 +18,14 @@
 #include "global.h"
 
 #include <map>
+#include <queue>
 
 
 enum EParseState {
 	Parse_not_done=0,
 	Parse_print_help,
 	Parse_unknown_command,
+	Parse_print_version,
 	Parse_ok
 	
 };
@@ -57,6 +59,7 @@ private:
 	void parseCommandLine(int argc, char *argv[]);
 	void printHelp();
 	void wrongUsage(const char* fmt, ...);
+	void printVersion();
 	
 	bool pushTask(ETask task);
 	
@@ -64,6 +67,7 @@ private:
 	
 	EParseState m_parse_state;
 	map<string, string> m_arg_variables;
+	queue<string> m_formats;
 	bool m_tasks[TASK_COUNT];
 };
 
