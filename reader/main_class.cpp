@@ -68,8 +68,10 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 		} else if(arg=="--output" || arg=="-o") {
 			m_arg_variables["output"]=args[i+1];
 			++i;
+		} else if(arg=="--new-only" || arg=="-n") {
+			m_arg_variables["new-only"]="1";
 		} else if(arg=="--format" || arg=="-f") {
-			m_arg_variables["format"]=toLower(args[i+1]);
+			m_formats.push(toLower(args[i+1]));
 			++i;
 		} else if(arg=="--read-addr") {
 			pushTask(Task_read_addr);	
@@ -113,8 +115,8 @@ void CMain::exec() {
 
 void CMain::printHelp() {
 	printf("Usage:\n"
-		" "APP_NAME" [-v] -d <device> [-t [-o <path>] [-f <format>]] [-i] [-r]\n"
-		" "APP_NAME" [-v] -d <device> [--set-distance <distance>]\n"
+		" "APP_NAME" [-v] -d <device> [-t [-o <path> [-n]] [-f <format>]] [-i]\n"
+		" "APP_NAME" [-v] -d <device> [--set-distance <distance>] [-r]\n"
 		"  -d, --device <device>           set the device to read from/write to\n"
 		"                                  <device>: e.g. /dev/ttyUSB1\n"
 		"  -t, --get-tracks                read the tracks and save them to file\n"
@@ -122,6 +124,8 @@ void CMain::printHelp() {
 		"                                  each track will be saved to a file\n"
 		"                                  in the form \'trace_YYYY-MM-DD-HH.MM.SS.gpx\'\n"
 		"                                  if not set, stdout will be used\n"
+		"  -n, --new-only                  read only tracks that don't already exist in\n"
+		"                                  the output folder\n"
 		"  -f, --format <format>           file output format\n"
 		"                                  supported are gpx and txt\n"
 		"                                  default is txt\n"
@@ -202,40 +206,52 @@ void CMain::processArgs() {
 	if(m_tasks[Task_get_tracks]) {
 		CPersistence* persistence=NULL;
 		string file_ext="";
-		if(m_arg_variables["format"]=="txt") {
-			file_ext=".txt";
-			persistence=new CPersistenceTxt();
-		} else if(m_arg_variables["format"]=="gravity" || m_arg_variables["format"]=="grav") {
-			file_ext=".grav";
-			persistence=new CPersistenceGravity();
-		} else { //gpx
-			file_ext=".gpx";
-			persistence=new CPersistenceGpx();
-		}
-		
-		navilock.readTracks();
 		string& folder=m_arg_variables["output"];
 		if(folder.length()>0 && folder[folder.length()-1]!=FOLDER_SEPARATOR) folder+=FOLDER_SEPARATOR;
+		if(m_formats.empty()) m_formats.push("txt");
+		bool bNew_only=(m_arg_variables["new-only"]=="1");
 		
-		FILE* hFile=stdout;
+		navilock.readTrackInfos();
 		
-		for(size_t i=0; i<navilock.tracks().size(); ++i) {
-			const ETrack& track=navilock.tracks()[i];
-			if(track.bGot_info) {
-				if(folder.length()>0) {
-					string file=folder+"trace_"+track.start_date.toStr("%04u-%02i-%02i")
-							+"-"+track.start_time.toStr("%02i.%02i.%02i")+file_ext;
-					hFile=fopen(file.c_str(), "w");
-					ASSERT_THROW_e(hFile, EFILE_ERROR, "Failed to open the file %s", file.c_str());
-				}
-				persistence->write(hFile, track);
-				if(folder.length()>0) {
-					fclose(hFile);
+		while(!m_formats.empty()) {
+			const string& format=m_formats.front();
+			if(format=="txt") {
+				file_ext=".txt";
+				persistence=new CPersistenceTxt();
+			} else if(format=="gravity" || format=="grav") {
+				file_ext=".grav";
+				persistence=new CPersistenceGravity();
+			} else { //gpx
+				file_ext=".gpx";
+				persistence=new CPersistenceGpx();
+			}
+			
+			FILE* hFile=stdout;
+			
+			for(size_t i=0; i<navilock.tracks().size(); ++i) {
+				const ETrack& track=navilock.tracks()[i];
+				string date_time=track.start_date.toStr("%04u-%02i-%02i")
+								+"-"+track.start_time.toStr("%02i.%02i.%02i");
+				if(folder.length()==0 || !bNew_only || (bNew_only && findFile(folder, date_time, file_ext)=="")) {
+					navilock.readTrack(i);
+					
+					if(track.bGot_info) {
+						if(folder.length()>0) {
+							string file=folder+"trace_"+date_time+file_ext;
+							hFile=fopen(file.c_str(), "w");
+							ASSERT_THROW_e(hFile, EFILE_ERROR, "Failed to open the file %s", file.c_str());
+						}
+						persistence->write(hFile, track);
+						if(folder.length()>0) {
+							fclose(hFile);
+						}
+					}
 				}
 			}
+			
+			delete(persistence);
+			m_formats.pop();
 		}
-		
-		delete(persistence);
 	}
 	
 	

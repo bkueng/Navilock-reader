@@ -18,6 +18,7 @@
 #include "global.h"
 
 #include <map>
+#include <queue>
 
 
 enum EParseState {
@@ -64,6 +65,7 @@ private:
 	
 	EParseState m_parse_state;
 	map<string, string> m_arg_variables;
+	queue<string> m_formats;
 	bool m_tasks[TASK_COUNT];
 };
 

@@ -14,6 +14,9 @@
 
 #include "global.h"
 
+#include <sys/types.h>
+#include <dirent.h>
+
 
 string getDate() {
 	char   timestr[20];
@@ -35,6 +38,26 @@ string getTime() {
 	(int)ptm->tm_min,
 	(int)ptm->tm_sec);
 	return(timestr);
+}
+
+string findFile(const string& folder, const string& contains, const string& extension) {
+	DIR* dir = opendir(folder.c_str());
+	if(!dir) return("");
+	
+	struct dirent* d;
+	while( (d = readdir(dir)) != 0) {
+		if(d->d_type == DT_REG) {
+			if(d->d_name[0]!='.') {
+				string name=d->d_name;
+				if(contains.length()==0 || name.find(contains)!=string::npos) {
+					if(name.length()>=extension.length() && toLower(name).rfind(toLower(extension))==name.length()-extension.length())
+						return(name);
+				}
+			}
+		}
+	}
+	closedir(dir); 
+	return("");
 }
 
 

@@ -39,7 +39,9 @@ string getDate(); //format: DD.MM.YY
 string getTime(); //format: HH:MM:SS
 
 
-
+/* finds a file in folder with the substring constains in the filename. returns "" if none is found 
+ * if multiple exist, the first found is returned */
+string findFile(const string& folder, const string& contains, const string& extension="");
 
 /* useful string functions */
 
