@@ -25,6 +25,7 @@ enum EParseState {
 	Parse_not_done=0,
 	Parse_print_help,
 	Parse_unknown_command,
+	Parse_print_version,
 	Parse_ok
 	
 };
@@ -58,6 +59,7 @@ private:
 	void parseCommandLine(int argc, char *argv[]);
 	void printHelp();
 	void wrongUsage(const char* fmt, ...);
+	void printVersion();
 	
 	bool pushTask(ETask task);
 	

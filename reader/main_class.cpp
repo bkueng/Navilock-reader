@@ -16,6 +16,7 @@
 #include "serial.h"
 #include "navilock.h"
 #include "persistence.h"
+#include "version.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -52,6 +53,8 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 		string& arg=args[i];
 		if(arg=="--help" || arg=="-h") {
 			m_parse_state=Parse_print_help;
+		} else if(arg=="--version") {
+			m_parse_state=Parse_print_version;
 		} else if(arg=="--get-tracks" || arg=="-t") {
 			pushTask(Task_get_tracks);
 		} else if(arg=="--info" || arg=="-i") {
@@ -104,6 +107,9 @@ void CMain::exec() {
 	case Parse_print_help:
 		printHelp();
 		break;
+	case Parse_print_version:
+		printVersion();
+		break;
 	case Parse_unknown_command:
 		wrongUsage("Unknown command: %s", m_arg_variables["unknown_command"].c_str());
 		break;
@@ -117,6 +123,7 @@ void CMain::printHelp() {
 	printf("Usage:\n"
 		" "APP_NAME" [-v] -d <device> [-t [-o <path> [-n]] [-f <format>]] [-i]\n"
 		" "APP_NAME" [-v] -d <device> [--set-distance <distance>] [-r]\n"
+		" "APP_NAME" --version\n"
 		"  -d, --device <device>           set the device to read from/write to\n"
 		"                                  <device>: e.g. /dev/ttyUSB1\n"
 		"  -t, --get-tracks                read the tracks and save them to file\n"
@@ -135,7 +142,12 @@ void CMain::printHelp() {
 		"  -i, --info                      print track information on device\n"
 		"  -v, --verbose                   print debug messages\n"
 		"  -h, --help                      print this message\n"
+		"  --version                       print the version\n"
 		);
+}
+
+void CMain::printVersion() {
+	printf("%s\n", getAppVersion().toStr().c_str());
 }
 
 void CMain::wrongUsage(const char* fmt, ...) {
