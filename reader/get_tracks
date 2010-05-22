@@ -57,6 +57,7 @@ DEVICE=$(get_config "$CONF_FILE" "DEVICE")
 # Move the new configuration file in place.
 mv -f "${CONF_FILE}~" "${CONF_FILE}"
 
+mkdir -p "$TRACK_FOLDER"
 
 $NAVILOCK_READER --device "$DEVICE" --get-tracks --output "$TRACK_FOLDER" --new-only --format txt --format gpx --info
 
