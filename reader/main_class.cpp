@@ -181,13 +181,8 @@ void CMain::processArgs() {
 	
 	//open the device
 	CSerial serial;
-	try {
-		serial.open(device.c_str());
-		serial.initConnection(B115200);
-	} catch(const Exception& e) {
-		LOG(ERROR, "Failed to open the serial device %s", device.c_str());
-		return;
-	}
+	serial.open(device.c_str());
+	serial.initConnection(B115200);
 	
 	LOG(DEBUG, "Serial device %s opened", device.c_str());
 	

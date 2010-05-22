@@ -183,7 +183,7 @@ bool CNavilock::readTrackInfo(ushort track, char* buffer, int buffer_size) {
 	request[5]=(track & 0xFF);
 	m_device.write(request, sizeof(request));
 	int ret=m_device.read(buffer, buffer_size);
-	ASSERT_THROW(ret==24, EDEVICE);
+	ASSERT_THROW_e(ret==24, EDEVICE, "Expected Answer of 24 bytes but got %i", ret);
 	
 	static const char no_track[]= { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
 									0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
