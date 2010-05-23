@@ -13,11 +13,13 @@
  */
 
 #include "global.h"
-#include "version.h"
 
 #include <sys/types.h>
 #include <dirent.h>
 
+
+
+#include "version.h"
 
 VERSION getAppVersion() {
 	return(VERSION((int)VERSION_MAJOR, (int)VERSION_MINOR, (int)VERSION_PATCH));

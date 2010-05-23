@@ -214,7 +214,7 @@ void CMain::processArgs() {
 		CPersistence* persistence=NULL;
 		string file_ext="";
 		string& folder=m_arg_variables["output"];
-		if(folder.length()>0 && folder[folder.length()-1]!=FOLDER_SEPARATOR) folder+=FOLDER_SEPARATOR;
+		if(folder.length()>0 && folder.substr(folder.length()-1,1)!=PATH_SEP) folder+=PATH_SEP;
 		if(m_formats.empty()) m_formats.push("txt");
 		bool bNew_only=(m_arg_variables["new-only"]=="1");
 		

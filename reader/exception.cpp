@@ -14,8 +14,7 @@
 
 
 #include "exception.h"
-
-#include "global.h"
+#include "config.h"
 #include "logging.h"
 
 
@@ -65,7 +64,7 @@ string Exception::getErrorStr() {
 	case EINTERRUPTED: return("EINTERRUPTED");
 	case EUNSUPPORTED: return("EUNSUPPORTED");
 	}
-	return("(Error undefined)");
+	return("(unknown Error)");
 }
 
 

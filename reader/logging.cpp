@@ -13,7 +13,7 @@
  */
 
 #include "logging.h"
-#include "global.h"
+#include "config.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -74,6 +74,28 @@ int CLog::getFileLogCount() {
 	return(sum);
 }
 
+
+string CLog::getDate() {
+	char   timestr[20];
+	time_t seconds= time(0);
+	struct tm *ptm= localtime(&seconds);
+	sprintf(timestr,"%02i.%02i.%02i",
+	(int)ptm->tm_mday,	
+	(int)ptm->tm_mon+1,
+	(int)ptm->tm_year-100);
+	return(timestr);
+
+}
+string CLog::getTime() {
+	char   timestr[20];
+	time_t seconds= time(0);
+	struct tm *ptm= localtime(&seconds);
+	sprintf(timestr,"%02i:%02i:%02i",
+	(int)ptm->tm_hour,
+	(int)ptm->tm_min,
+	(int)ptm->tm_sec);
+	return(timestr);
+}
 
 
 CLog::CLog() : m_bLog_time(true), m_console_log(INFO), m_file_log(INFO) {
