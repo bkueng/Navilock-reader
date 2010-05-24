@@ -16,28 +16,8 @@
 #define MAIN_CLASS_H_
 
 #include "global.h"
+#include "command_line.h"
 
-#include <map>
-#include <queue>
-
-
-enum EParseState {
-	Parse_not_done=0,
-	Parse_print_help,
-	Parse_unknown_command,
-	Parse_print_version,
-	Parse_ok
-	
-};
-
-enum ETask {
-	Task_get_tracks=0,
-	Task_print_track_info,
-	Task_delete_tracks,
-	Task_set_distance,
-	Task_read_addr
-};
-#define TASK_COUNT 5
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////
  ** class CMain
@@ -61,14 +41,11 @@ private:
 	void wrongUsage(const char* fmt, ...);
 	void printVersion();
 	
-	bool pushTask(ETask task);
-	
 	void processArgs();
 	
-	EParseState m_parse_state;
-	map<string, string> m_arg_variables;
-	queue<string> m_formats;
-	bool m_tasks[TASK_COUNT];
+	
+	CCommandLineParser* m_parameters;
+	ECLParsingResult m_cl_parse_result;
 };
 
 

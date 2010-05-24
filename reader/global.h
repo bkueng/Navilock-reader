@@ -12,8 +12,6 @@
  *
  */
 
-
-
 #ifndef GLOBAL_H_
 #define GLOBAL_H_
 
@@ -31,6 +29,8 @@ using namespace std;
 #include "exception.h"
 #include "logging.h"
 
+
+#define SAVE_DEL(x) if(x) { delete(x); x=NULL; }
 
 
 string getDate(); //format: DD.MM.YY
