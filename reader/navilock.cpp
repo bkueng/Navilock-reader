@@ -139,7 +139,7 @@ void ETrack::calcAdditional() {
 		tot_distance=0.0;
 		max_speed=0;
 		min_altitude=99999;
-		max_altitude=elevation=descent=0;
+		time_zero_speed=max_altitude=elevation=descent=0;
 		EPoint* last_point=NULL;
 		
 		for(uint i=0; i<point_count; ++i) {
@@ -148,11 +148,18 @@ void ETrack::calcAdditional() {
 			if(points[i].speed>max_speed) max_speed=points[i].speed;
 			if(points[i].altitude>max_altitude) max_altitude=points[i].altitude;
 			if(points[i].altitude<min_altitude) min_altitude=points[i].altitude;
-			if(last_point && last_point->altitude!=0 && points[i].altitude!=0) {
-				if(last_point->altitude < points[i].altitude) {
-					elevation+=points[i].altitude-last_point->altitude;
-				} else {
-					descent+=last_point->altitude-points[i].altitude;
+			if(last_point) {
+				if(points[i].speed==0) {
+					int dsec=points[i].time.toSec()-last_point->time.toSec();
+					if(dsec < 0) dsec+=24*60*60;
+					time_zero_speed+=dsec;
+				}
+				if(last_point->altitude!=0 && points[i].altitude!=0) {
+					if(last_point->altitude < points[i].altitude) {
+						elevation+=points[i].altitude-last_point->altitude;
+					} else {
+						descent+=last_point->altitude-points[i].altitude;
+					}
 				}
 			}
 			last_point=points+i;
