@@ -1,3 +1,12 @@
++ Release v1.0-p1
+navilock_reader:
+! get_tracks script: create track folder if it doesn't exist
+! more verbose errors
++ flexible command line parser
++ driving time in txt format
+! use driving time for average speed
+
+
 + Release v1.0
  navilock usb serial driver
 
