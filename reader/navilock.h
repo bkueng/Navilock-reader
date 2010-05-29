@@ -29,6 +29,8 @@ struct ETime {
 	char min;
 	char sec;
 	
+	int toSec() { return(((int)hour*60+(int)min)*60+(int)sec); }
+	
 	string toStr(const char* format="%02i:%02i:%02i") const {
 		char b[15];
 		sprintf(b, format, (int)hour, (int)min, (int)sec); 
@@ -116,6 +118,7 @@ struct EPoint {
 	
 	//point_before->calcAdditional() must be called before
 	void calcAdditional(const EPoint* point_before);
+	
 };
 
 
@@ -143,9 +146,13 @@ struct ETrack {
 	int max_altitude;
 	int elevation; //[m] in total
 	int descent; //[m] in total
+	int time_zero_speed; //[s] total time with speed==0 -> end time - start time - time_zero_speed = driving speed
 	
 	//points must be loaded, calls calcAdditional for every point
 	void calcAdditional();
+	
+	//[s]
+	int tripDuration() const { return(getDeltaTimeSec(start_date, start_time, end_date, end_time)); }
 };
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////

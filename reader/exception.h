@@ -48,9 +48,6 @@ enum EnErrors {
 	EUNSUPPORTED
 };
 
-#define LOG_EXCEPTIONS
-
-
 
 /*********************************************************************//*!
  * @class Exception

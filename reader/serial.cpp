@@ -19,10 +19,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <termios.h>
-#include <cstdio>
 #include <unistd.h>
-#include <cstring>
+#include <errno.h>
 
+#include <cstring>
+#include <cstdio>
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////
  ** class CDataPoint
@@ -53,7 +54,7 @@ CSerial::~CSerial() {
 void CSerial::open(const char* device) {
 	if(m_fd==-1) {
 		m_fd = ::open(device, O_RDWR | O_NOCTTY);
-		ASSERT_THROW(m_fd>=0, EDEVICE);
+		ASSERT_THROW_e(m_fd>=0, EDEVICE, "Failed to open the serial device %s (%s)", device, strerror(errno));
 		
 		tcgetattr(m_fd,&m_oldtio); /* save current port settings */
 	}
@@ -85,7 +86,7 @@ void CSerial::initConnection(unsigned int baudrate) {
 	tio.c_cc[VMIN]     = 3;   /* blocking read until 3 chars received */
 	
 	tcflush(m_fd, TCIFLUSH);
-	ASSERT_THROW(tcsetattr(m_fd,TCSANOW, &tio)==0, EDEVICE);
+	ASSERT_THROW_e(tcsetattr(m_fd,TCSANOW, &tio)==0, EDEVICE, "Failed to set device settings (%s)", strerror(errno));
 }
 
 

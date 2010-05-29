@@ -1,3 +1,7 @@
 
 /tracks
 /do-*
+
+*~
+/communication/sniffed
+*.log

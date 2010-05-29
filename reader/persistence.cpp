@@ -160,16 +160,18 @@ CPersistenceTxt::~CPersistenceTxt() {
 	
 void CPersistenceTxt::write(FILE* hFile, const ETrack& track) {
 	
-	int track_time=getDeltaTimeSec(track.start_date, track.start_time,
-					track.end_date, track.end_time);
+	int track_time=track.tripDuration();
+	int driving_time=track_time-track.time_zero_speed;
+	
 	fprintf(hFile, 
 			"Points:                           %8u\n"
 			"Points of interest:               %8u\n"
 			"Start:                 %s %s\n"
 			"End:                   %s %s\n"
 			"Duration:        %25s\n"
-			"Distance:                         %.3lf km\n"
-			"Performace distance:              %.3lf km\n"
+			"Driving time:    %25s\n"
+			"Distance:                      %8.3lf km\n"
+			"Performace distance:           %8.3lf km\n"
 			"Average speed:                  %5.1f km/h\n"
 			"Max speed:                      %5.1f km/h\n"
 			"Min altitude:                   %8i m\n"
@@ -177,13 +179,12 @@ void CPersistenceTxt::write(FILE* hFile, const ETrack& track) {
 			"Elevation:                      %8i m\n"
 			"Descent:                        %8i m\n"
 			"\n"
-			//distance, average speed, max speed, min altitude, max altitude, "leistungskilometer"
 			, track.point_count-(uint)track.poi_count, (uint)track.poi_count
 			, track.start_date.toStr().c_str(), track.start_time.toStr().c_str()
 			, track.end_date.toStr().c_str(), track.end_time.toStr().c_str()
-			, deltaTimeToStr(track_time).c_str()
+			, deltaTimeToStr(track_time).c_str(), deltaTimeToStr(driving_time).c_str()
 			, track.tot_distance/1000.0, track.tot_distance/1000.0+(double)track.elevation/100.0
-			, (float)(track.tot_distance/1000.0)/((float)track_time/3600.0)
+			, (float)(track.tot_distance/1000.0)/((float)driving_time/3600.0)
 			, (float)track.max_speed*1.8
 			, track.min_altitude, track.max_altitude
 			, track.elevation, track.descent

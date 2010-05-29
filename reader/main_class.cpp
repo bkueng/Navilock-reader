@@ -28,11 +28,12 @@
 /*////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-CMain::CMain() : m_parse_state(Parse_not_done) {
-	memset(m_tasks, 0, sizeof(m_tasks));
+CMain::CMain() :m_parameters(NULL), m_cl_parse_result(Parse_none_found) {
+	
 }
 
 CMain::~CMain() {
+	SAVE_DEL(m_parameters);
 }
 
 
@@ -43,86 +44,39 @@ void CMain::init(int argc, char *argv[]) {
 }
 
 void CMain::parseCommandLine(int argc, char *argv[]) {
-	vector<string> args;
-	for(int i=0; i<argc; ++i) args.push_back(argv[i]);
-	args.push_back(""); args.push_back(""); //to avoid buffer overflow
 	
-	m_arg_variables.clear();
+	SAVE_DEL(m_parameters);
+	m_parameters=new CCommandLineParser(argc, argv);
 	
-	for(int i=1; i<argc; ++i) {
-		string& arg=args[i];
-		if(arg=="--help" || arg=="-h") {
-			m_parse_state=Parse_print_help;
-		} else if(arg=="--version") {
-			m_parse_state=Parse_print_version;
-		} else if(arg=="--get-tracks" || arg=="-t") {
-			pushTask(Task_get_tracks);
-		} else if(arg=="--info" || arg=="-i") {
-			pushTask(Task_print_track_info);
-		} else if(arg=="--reset" || arg=="-r") {
-			pushTask(Task_delete_tracks);
-		} else if(arg=="--set-distance") {
-			pushTask(Task_set_distance);	
-			m_arg_variables["distance"]=args[i+1];
-			++i;
-		} else if(arg=="--device" || arg=="-d") {
-			m_arg_variables["device"]=args[i+1];
-			++i;
-		} else if(arg=="--output" || arg=="-o") {
-			m_arg_variables["output"]=args[i+1];
-			++i;
-		} else if(arg=="--new-only" || arg=="-n") {
-			m_arg_variables["new-only"]="1";
-		} else if(arg=="--format" || arg=="-f") {
-			m_formats.push(toLower(args[i+1]));
-			++i;
-		} else if(arg=="--read-addr") {
-			pushTask(Task_read_addr);	
-			m_arg_variables["addr_offset"]=toLower(args[i+1]);
-			m_arg_variables["addr_count"]=toLower(args[i+2]);
-			i+=2;
-		} else if(arg=="--verbose" || arg=="-v") {
-			m_arg_variables["verbose"]="1";
-		} else {
-			m_parse_state=Parse_unknown_command;
-			m_arg_variables["unknown_command"]=arg;
-			i=argc; //abort
-		}
-	}
-}
-
-bool CMain::pushTask(ETask task) {
-	if(m_parse_state==Parse_not_done|| m_parse_state==Parse_ok) {
-		m_parse_state=Parse_ok;
-		m_tasks[task]=true;
-		return(true);
-	}
-	return(false);
-}
-
-
-void CMain::exec() {
-	switch(m_parse_state) {
-	case Parse_not_done:
-	case Parse_print_help:
-		printHelp();
-		break;
-	case Parse_print_version:
-		printVersion();
-		break;
-	case Parse_unknown_command:
-		wrongUsage("Unknown command: %s", m_arg_variables["unknown_command"].c_str());
-		break;
-	case Parse_ok:
-		processArgs();
-		break;
-	}
+	//init known arguments
+	m_parameters->addSwitch("help", 'h');
+	m_parameters->addSwitch("version");
+	m_parameters->addSwitch("verbose", 'v');
+	m_parameters->addParam("device", 'd');
+	m_parameters->addParam("set-distance");
+	
+	m_parameters->addTask("get-tracks", 't');
+	m_parameters->addParam("output", 'o', "", "get-tracks");
+	m_parameters->addSwitch("new-only", 'n', "get-tracks");
+	m_parameters->addParam("format", 'f', "txt", "get-tracks");
+	
+	m_parameters->addTask("reset", 'r');
+	
+	m_parameters->addTask("info", 'i');
+	
+	m_parameters->addTask("read-address", 'a');
+	m_parameters->addParam("offset", 'o', "0", "read-address");
+	m_parameters->addParam("size", 's', "0", "read-address");
+	
+	m_cl_parse_result=m_parameters->parse();
+	
 }
 
 void CMain::printHelp() {
 	printf("Usage:\n"
 		" "APP_NAME" [-v] -d <device> [-t [-o <path> [-n]] [-f <format>]] [-i]\n"
 		" "APP_NAME" [-v] -d <device> [--set-distance <distance>] [-r]\n"
+		" "APP_NAME" [-v] -d <device> [-a -o <offset> -s <size>]\n"
 		" "APP_NAME" --version\n"
 		"  -d, --device <device>           set the device to read from/write to\n"
 		"                                  <device>: e.g. /dev/ttyUSB1\n"
@@ -138,12 +92,38 @@ void CMain::printHelp() {
 		"                                  default is txt\n"
 		"  -r, --reset                     delete all tracks\n"
 		"  --set-distance <distance>       set the total km count to <distance>\n"
-		"  --read-addr <offset> <count>    read flash memory and output hex values\n"
+		"  -a, --read-address              read flash memory and output hex values\n"
+		"     -o, --offset                 address offset\n"
+		"     -s, --size                   size to read in bytes\n"
 		"  -i, --info                      print track information on device\n"
 		"  -v, --verbose                   print debug messages\n"
 		"  -h, --help                      print this message\n"
 		"  --version                       print the version\n"
 		);
+}
+
+
+void CMain::exec() {
+	
+	ASSERT_THROW(m_parameters, ENOT_INITIALIZED);
+	
+	switch(m_cl_parse_result) {
+	case Parse_none_found:
+		printHelp();
+		break;
+	case Parse_unknown_command:
+		wrongUsage("Unknown command: %s", m_parameters->getUnknownCommand().c_str());
+		break;
+	case Parse_success:
+		if(m_parameters->getSwitch("help")) {
+			printHelp();
+		} else if(m_parameters->getSwitch("version")) {
+			printVersion();
+		} else {
+			processArgs();
+		}
+		break;
+	}
 }
 
 void CMain::printVersion() {
@@ -168,11 +148,12 @@ void CMain::wrongUsage(const char* fmt, ...) {
 
 void CMain::processArgs() {
 	
-	if(m_arg_variables["verbose"]=="1") CLog::getInstance().setConsoleLevel(DEBUG);
+	if(m_parameters->getSwitch("verbose")) CLog::getInstance().setConsoleLevel(DEBUG);
 	
 	
-	string& device=m_arg_variables["device"];
-	if(device=="") {
+	string device;
+	m_parameters->getParam("device", device);
+	if(device.length()==0) {
 		//todo: can we make this optional -> try to find appropriate device
 		
 		wrongUsage("No device submitted");
@@ -181,22 +162,16 @@ void CMain::processArgs() {
 	
 	//open the device
 	CSerial serial;
-	try {
-		serial.open(device.c_str());
-		serial.initConnection(B115200);
-	} catch(const Exception& e) {
-		LOG(ERROR, "Failed to open the serial device %s", device.c_str());
-		return;
-	}
+	serial.open(device.c_str());
+	serial.initConnection(B115200);
 	
 	LOG(DEBUG, "Serial device %s opened", device.c_str());
 	
 	CNavilock navilock(serial);
 	
-	
-	if(m_tasks[Task_print_track_info]) {
+	if(m_parameters->setTask("info")->bGiven) {
 		navilock.readTrackInfos();
-		printf("Found %u Tracks\n", navilock.tracks().size());
+		printf("Found %u Tracks on device %s\n", navilock.tracks().size(), device.c_str());
 		
 		if(navilock.tracks().size()>0) {
 			printf(" #    Points       POI      Addr          Start         Duration\n");
@@ -215,79 +190,86 @@ void CMain::processArgs() {
 		printf("Total distance: %.1lfkm\n", navilock.totalDistance());
 	}
 	
-	if(m_tasks[Task_get_tracks]) {
-		CPersistence* persistence=NULL;
+	if(m_parameters->setTask("get-tracks")->bGiven) {
+		CPersistence* persistence;
 		string file_ext="";
-		string& folder=m_arg_variables["output"];
-		if(folder.length()>0 && folder[folder.length()-1]!=FOLDER_SEPARATOR) folder+=FOLDER_SEPARATOR;
-		if(m_formats.empty()) m_formats.push("txt");
-		bool bNew_only=(m_arg_variables["new-only"]=="1");
+		string folder="";
+		m_parameters->getParam("output", folder);
+		if(folder.length()>0 && folder.substr(folder.length()-1,1)!=PATH_SEP) folder+=PATH_SEP;
+		bool bNew_only=m_parameters->getSwitch("new-only");
 		
 		navilock.readTrackInfos();
+		string format;
+		m_parameters->getParam("format", format);
 		
-		while(!m_formats.empty()) {
-			const string& format=m_formats.front();
+		do {
+			toLower(format);
 			if(format=="txt") {
 				file_ext=".txt";
 				persistence=new CPersistenceTxt();
 			} else if(format=="gravity" || format=="grav") {
 				file_ext=".grav";
 				persistence=new CPersistenceGravity();
-			} else { //gpx
+			} else if(format=="gpx") {
 				file_ext=".gpx";
 				persistence=new CPersistenceGpx();
+			} else {
+				persistence=NULL;
+				LOG(ERROR, "Unknown output format: %s", format.c_str());
 			}
 			
-			FILE* hFile=stdout;
-			
-			for(size_t i=0; i<navilock.tracks().size(); ++i) {
-				const ETrack& track=navilock.tracks()[i];
-				string date_time=track.start_date.toStr("%04u-%02i-%02i")
-								+"-"+track.start_time.toStr("%02i.%02i.%02i");
-				if(folder.length()==0 || !bNew_only || (bNew_only && findFile(folder, date_time, file_ext)=="")) {
-					navilock.readTrack(i);
-					
-					if(track.bGot_info) {
-						if(folder.length()>0) {
-							string file=folder+"trace_"+date_time+file_ext;
-							hFile=fopen(file.c_str(), "w");
-							ASSERT_THROW_e(hFile, EFILE_ERROR, "Failed to open the file %s", file.c_str());
-						}
-						persistence->write(hFile, track);
-						if(folder.length()>0) {
-							fclose(hFile);
+			if(persistence) {
+				FILE* hFile=stdout;
+				
+				for(size_t i=0; i<navilock.tracks().size(); ++i) {
+					const ETrack& track=navilock.tracks()[i];
+					string date_time=track.start_date.toStr("%04u-%02i-%02i")
+									+"-"+track.start_time.toStr("%02i.%02i.%02i");
+					if(folder.length()==0 || !bNew_only || (bNew_only && findFile(folder, date_time, file_ext)=="")) {
+						navilock.readTrack(i);
+						
+						if(track.bGot_info) {
+							if(folder.length()>0) {
+								string file=folder+"trace_"+date_time+file_ext;
+								hFile=fopen(file.c_str(), "w");
+								ASSERT_THROW_e(hFile, EFILE_ERROR, "Failed to open the file %s", file.c_str());
+							}
+							persistence->write(hFile, track);
+							if(folder.length()>0) {
+								fclose(hFile);
+							}
 						}
 					}
 				}
+				
+				delete(persistence);
 			}
-			
-			delete(persistence);
-			m_formats.pop();
-		}
+		} while(m_parameters->getParam("format", format));
 	}
 	
 	
-	if(m_tasks[Task_delete_tracks]) {
+	if(m_parameters->setTask("reset")->bGiven) {
 		navilock.deleteTracks();
 	}
 	
-	
-	if(m_tasks[Task_set_distance]) {
-		string& distance=m_arg_variables["distance"];
-		if(distance.length() > 0) {
-			double dist;
-			ASSERT_THROW_s(sscanf(distance.c_str(), "%lf", &dist)==1, "Failed to parse the distance %s", distance.c_str());
-			ASSERT_THROW_s(dist>=0.0 && dist<99999.9, "Distance out of bounds (0 <= dist < 99999.9)");
-			navilock.setTotalDistance(dist);
-		}
+	m_parameters->setTask("");
+	string distance;
+	if(m_parameters->getParam("set-distance", distance)) {
+		double dist;
+		ASSERT_THROW_s(sscanf(distance.c_str(), "%lf", &dist)==1, "Failed to parse the distance %s", distance.c_str());
+		ASSERT_THROW_s(dist>=0.0 && dist<99999.9, "Distance out of bounds (0 <= dist < 99999.9)");
+		navilock.setTotalDistance(dist);
 	}
 	
 	
-	if(m_tasks[Task_read_addr]) {
+	if(m_parameters->setTask("read-address")->bGiven) {
 		uint offset, count;
 		int ret=0;
-		if(sscanf(m_arg_variables["addr_offset"].c_str(), "%u", &offset)!=1) offset=0;
-		if(sscanf(m_arg_variables["addr_count"].c_str(), "%u", &count)!=1) count=16;
+		string soffset, scount;
+		m_parameters->getParam("offset", soffset);
+		m_parameters->getParam("size", scount);
+		if(sscanf(soffset.c_str(), "%u", &offset)!=1) offset=0;
+		if(sscanf(scount.c_str(), "%u", &count)!=1) count=16;
 		char buffer[50];
 		bool bFirst=true;
 		

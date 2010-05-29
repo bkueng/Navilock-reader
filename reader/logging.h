@@ -16,6 +16,8 @@
 #define LOGGING_H_
 
 #include <cstdlib>
+#include <string>
+using namespace std;
 
 enum ELOG {
 	NONE=0,
@@ -26,8 +28,6 @@ enum ELOG {
 };
 
 #define LOG_LEVEL_COUNT 5
-
-#define LOG_FILE "./"APP_NAME".log"
 
 
 #define LOG(level, fmt, ...) CLog::getInstance().Log(level, __FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__)
@@ -66,6 +66,9 @@ public:
 	
 	int getConsoleLogCount(ELOG log_level) { return(m_console_log_count[log_level]);}
 	int getConsoleLogCount(); //sum all levels
+	
+	static string getDate(); //format: DD.MM.YY
+	static string getTime(); //format: HH:MM:SS
 private:
 	CLog();
 	~CLog();
