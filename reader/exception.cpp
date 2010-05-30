@@ -14,8 +14,10 @@
 
 
 #include "exception.h"
-#include "config.h"
+
+#ifdef LOG_EXCEPTIONS
 #include "logging.h"
+#endif
 
 
 /*********************************************************************//*
@@ -63,8 +65,9 @@ string Exception::getErrorStr() {
 	case ETRY_AGAIN: return("ETRY_AGAIN");
 	case EINTERRUPTED: return("EINTERRUPTED");
 	case EUNSUPPORTED: return("EUNSUPPORTED");
+	case EFAILED_TO_LOAD: return("EFAILED_TO_LOAD");
 	}
-	return("(unknown Error)");
+	return("(Error undefined)");
 }
 
 

@@ -15,7 +15,9 @@
 #ifndef EXCEPTION_H_
 #define EXCEPTION_H_
 
+#include "config.h"
 
+#include <cstdio>
 #include <string>
 #include <cstdarg>
 using namespace std;
@@ -45,8 +47,10 @@ enum EnErrors {
 	EUNABLE_TO_READ,
 	ETRY_AGAIN,
 	EINTERRUPTED,
-	EUNSUPPORTED
+	EUNSUPPORTED,
+	EFAILED_TO_LOAD
 };
+
 
 
 /*********************************************************************//*!
