@@ -188,6 +188,18 @@ void CMain::processArgs() {
 		}
 		
 		printf("Total distance: %.1lfkm\n", navilock.totalDistance());
+		
+		uint last_addr=POINT_START_ADDR, last_point_count=0;
+		if(navilock.tracks().size()>0) {
+			const ETrack& last_track=*(navilock.tracks().end()-1);
+			last_addr=last_track.start_addr;
+			last_point_count=last_track.point_count;
+		}
+		uint tot_points=(DEVICE_MEM_SIZE-POINT_START_ADDR)/POINT_DATA_LEN;
+		uint point_free_count=(DEVICE_MEM_SIZE-last_addr)/POINT_DATA_LEN-last_point_count;
+		printf("Free memory: %.1f%% = %u points (~ %s)\n", (float)point_free_count/(float)tot_points*100.0f,
+				point_free_count, deltaTimeToStr(((TIME_BETWEEN_POINTS*point_free_count)/60)*60).c_str());
+		
 	}
 	
 	if(m_parameters->setTask("get-tracks")->bGiven) {

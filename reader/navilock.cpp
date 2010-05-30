@@ -268,8 +268,9 @@ void CNavilock::readTrack(size_t idx) {
 			int ret;
 			
 			for(uint i=0; i<track.point_count; ++i) {
-				ASSERT_THROW_e((ret=readAddr(track.start_addr+i*0x10, buffer, IO_BUFFER_SIZE))==16, EDEVICE
-						, "Failed to read addr %u from track %i (returned with %i)", track.start_addr+i, idx, ret);
+				ASSERT_THROW_e((ret=readAddr(track.start_addr+i*0x10, buffer, IO_BUFFER_SIZE))==POINT_DATA_LEN, EDEVICE
+						, "Failed to read addr %u from track %i (returned with %i, expected %i)", track.start_addr+i, idx, ret
+						, POINT_DATA_LEN);
 				/* parse buffer */
 				EPoint& point=track.points[i];
 				//latitude
