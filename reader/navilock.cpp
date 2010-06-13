@@ -122,14 +122,43 @@ double pointDistanceSquare(const E3dPoint& p1, const E3dPoint& p2) {
 
 
 
-void EPoint::calcAdditional(const EPoint* point_before) {
+void EPoint::calcAdditional(const EPoint* point_before, float bicycle_plus_body_weight, float body_height) {
 	
 	point3d=E3dPoint(*this);
 	if(point_before) {
 		delta_dist=pointDistance(point3d, point_before->point3d);
 		dist=delta_dist+point_before->dist;
+		delta_time=point_before->time.diff(time);
+		
+		/*
+		 * Energy:
+		 * 
+		 * first calculate 2 values:
+		 * - real energy: current speed energy
+		 * - theoretical energy:
+		 * 		-> speed before
+		 * 		-> - wheel drag
+		 * 		-> - air drag
+		 * 		-> +- height difference
+		 * 
+		 * the difference from these 2 values must come from the cyclist
+		 */
+		if(bicycle_plus_body_weight <= 0.0 || body_height <= 0.0) {
+			delta_energy=0.0;
+		} else {
+			float speed_square=getSpeedMS()*getSpeedMS();
+			float en_speed_before=0.5*bicycle_plus_body_weight*point_before->getSpeedMS()*point_before->getSpeedMS();
+			float en_speed=0.5*bicycle_plus_body_weight*speed_square;
+			float en_air_drag=0.5*AIR_DENSITY*body_height*AREA_COEFFICIENT*delta_dist*AIR_DRAG_COEFFICIENT*speed_square;
+			float en_wheel_drag=bicycle_plus_body_weight*PLANET_G*WHEEL_DRAG_COEFFICIENT*delta_dist;
+			float en_pot=bicycle_plus_body_weight*PLANET_G*(float)(altitude-point_before->altitude);
+			
+			delta_energy=en_speed - (en_speed_before-en_air_drag-en_wheel_drag-en_pot);
+			
+			if(delta_energy > 0.0) delta_energy/=BIKE_EFFICIENCY;
+		}
 	} else {
-		delta_dist=dist=0.0;
+		delta_time=delta_energy=delta_dist=dist=0.0;
 	}
 	
 }
@@ -138,13 +167,16 @@ void ETrack::calcAdditional() {
 	if(bGot_info && tot_distance==-1.0) {
 		tot_distance=0.0;
 		max_speed=0;
+		lost_energy=used_energy=0.0;
 		min_altitude=99999;
 		time_zero_speed=max_altitude=elevation=descent=0;
 		EPoint* last_point=NULL;
 		
 		for(uint i=0; i<point_count; ++i) {
-			points[i].calcAdditional(last_point);
+			points[i].calcAdditional(last_point, bicycle_plus_body_weight, body_height);
 			tot_distance+=points[i].delta_dist;
+			if(points[i].delta_energy > 0.0) used_energy+=points[i].delta_energy;
+			else lost_energy-=points[i].delta_energy;
 			if(points[i].speed>max_speed) max_speed=points[i].speed;
 			if(points[i].altitude>max_altitude) max_altitude=points[i].altitude;
 			if(points[i].altitude<min_altitude) min_altitude=points[i].altitude;
@@ -164,6 +196,9 @@ void ETrack::calcAdditional() {
 			}
 			last_point=points+i;
 		}
+		int driving_time=tripDuration()-time_zero_speed;
+		if(driving_time > 0) power=used_energy/(float)driving_time;
+		else power=0.0;
 	}
 }
 
@@ -172,7 +207,9 @@ void ETrack::calcAdditional() {
 /*////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-CNavilock::CNavilock(CDataPoint& device) : m_device(device), m_bRead_track_infos(false) {
+CNavilock::CNavilock(CDataPoint& device, float bicycle_plus_body_weight, float body_height) 
+	: m_bicycle_plus_body_weight(bicycle_plus_body_weight), m_body_height(body_height)
+	  , m_device(device), m_bRead_track_infos(false) {
 	
 }
 
@@ -231,6 +268,9 @@ void CNavilock::readTrackInfos() {
 			track.end_time.min=buffer[22];
 			track.end_time.sec=buffer[23];
 			track.end_date.year=READ_USHORT(buffer, 10);
+			
+			track.bicycle_plus_body_weight=m_bicycle_plus_body_weight;
+			track.body_height=m_body_height;
 			
 			
 			LOG(DEBUG, "Track %i: Point count: %u, POI count: %u, start addr %u, start: %s %s end: %s %s"

@@ -28,13 +28,33 @@ typedef unsigned char uchar;
 #define POINT_START_ADDR 			3584 				//address with the first point
 #define TIME_BETWEEN_POINTS 		5 					//[s] approximate delta time between two saved points
 
+#define SPEED_FACTOR				1.8					//calculate km/h from device speed
+
+//constants to calculate energy
+#define PLANET_G					9.81				//[m/s^2] acceleration of the earth
+#define AIR_DENSITY					1.25				//[kg/m^3]
+#define AIR_DRAG_COEFFICIENT		1.0					//how aerodynamic the ciclyst is (race bicycle: 0.88)
+#define AREA_COEFFICIENT			0.28				//this value * body height = area
+#define WHEEL_DRAG_COEFFICIENT		0.005				//asphalt would be 0.0035 (also depends on wheel pressure)
+#define BIKE_EFFICIENCY				0.98				//energy loss in bearing, chain, ...
+#define MUSCLES_EFFICIENCY			0.25				//human muscles efficency
+
+#define CALORIES_PER_JOULE			0.239
+
+
 
 struct ETime {
 	char hour;
 	char min;
 	char sec;
 	
-	int toSec() { return(((int)hour*60+(int)min)*60+(int)sec); }
+	int toSec() const { return(((int)hour*60+(int)min)*60+(int)sec); }
+	
+	int diff(const ETime& time_after) const {
+		int ret=time_after.toSec()-toSec();
+		if(ret<0) ret+=24*60*60;
+		return(ret);
+	}
 	
 	string toStr(const char* format="%02i:%02i:%02i") const {
 		char b[15];
@@ -112,23 +132,34 @@ struct EPoint {
 	ETime time;
 	
 	int altitude; //[m]
+	
 	uchar speed; //*1.8=km/h
+	float getSpeed() const { return((float)speed*SPEED_FACTOR); } //[km/h]
+	float getSpeedMS() const { return((float)speed*SPEED_FACTOR/3.6); } //[m/s]
 	
 	char type; //0: normal point, 1: POI
 	
 	//additional infos, these are calculated
 	E3dPoint point3d;
 	double dist; //[m] from track start to and with this point
-	double delta_dist; //[m] 
+	double delta_dist; //[m]
+	int delta_time; //[s]
+	
+	//energy
+	float delta_energy; //[J] how much energy from the ciclyst was needed to get form point before to this point
+						// a negative value means, the ciclyst braked
+						// if greater 0, bike energy loss is included but without human muscles loss
 	
 	//point_before->calcAdditional() must be called before
-	void calcAdditional(const EPoint* point_before);
+	void calcAdditional(const EPoint* point_before, float bicycle_plus_body_weight, float body_height);
 	
 };
 
 
 struct ETrack {
-	ETrack() : bGot_info(false), points(NULL), tot_distance(-1.0) {}
+	ETrack(float bicycle_plus_body_weight=-1.0, float body_height=-1.0)
+	: bGot_info(false), points(NULL), bicycle_plus_body_weight(bicycle_plus_body_weight)
+	  , body_height(body_height), tot_distance(-1.0) {}
 	~ETrack() { if(points) delete[](points); }
 	
 	bool bGot_info;
@@ -144,20 +175,32 @@ struct ETrack {
 	EDate end_date;
 	ETime end_time;
 	
+	//ciclyst info
+	float bicycle_plus_body_weight;
+	float body_height;
+	
 	//additional infos, calculated
 	double tot_distance;
 	uchar max_speed;
+	float getMaxSpeed() const { return((float)max_speed*SPEED_FACTOR); } //[km/h]
 	int min_altitude;
 	int max_altitude;
 	int elevation; //[m] in total
 	int descent; //[m] in total
 	int time_zero_speed; //[s] total time with speed==0 -> end time - start time - time_zero_speed = driving speed
 	
+	float used_energy; //[J] how much energy was needed by the cyclist (not how much energy the cyclist burned!)
+	float getCyclistEnergyConsumption() const { return(used_energy/MUSCLES_EFFICIENCY); } //[J], how much energy the body used
+	float lost_energy; //[J] 'lost' braking energy
+	float power; //[W] average power generation (points with speed==0 not included)
+	
 	//points must be loaded, calls calcAdditional for every point
 	void calcAdditional();
 	
 	//[s]
 	int tripDuration() const { return(getDeltaTimeSec(start_date, start_time, end_date, end_time)); }
+	
+	bool hasEnergyCalculations() const { return(bicycle_plus_body_weight>0 && body_height>0); }
 };
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,7 +211,7 @@ struct ETrack {
 class CNavilock {
 public:
 	/* devicee must be initialized and ready to be read/written from */
-	CNavilock(CDataPoint& device);
+	CNavilock(CDataPoint& device, float bicycle_plus_body_weight=-1.0, float body_height=-1.0);
 	~CNavilock();
 	
 	/* the tracks (date, time) can be read without getting the track points itself */
@@ -194,6 +237,8 @@ private:
 	/* returns true if track exists and buffer has data, false otherwise */
 	bool readTrackInfo(ushort track, char* buffer, int buffer_size);
 	
+	float m_bicycle_plus_body_weight; //[kg]
+	float m_body_height; //[m]
 	
 	
 	CDataPoint& m_device;

@@ -55,6 +55,9 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 	m_parameters->addParam("device", 'd');
 	m_parameters->addParam("set-distance");
 	
+	m_parameters->addParam("size", 's', "-1");
+	m_parameters->addParam("weight", 'w', "-1");
+	
 	m_parameters->addTask("get-tracks", 't');
 	m_parameters->addParam("output", 'o', "", "get-tracks");
 	m_parameters->addSwitch("new-only", 'n', "get-tracks");
@@ -74,7 +77,8 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 
 void CMain::printHelp() {
 	printf("Usage:\n"
-		" "APP_NAME" [-v] -d <device> [-t [-o <path> [-n]] [-f <format>]] [-i]\n"
+		" "APP_NAME" [-v] -d <device> [-t [-o <path> [-n]] [-f <format>] "
+		"                 [-s <size> -w <weight>]] [-i]\n"
 		" "APP_NAME" [-v] -d <device> [--set-distance <distance>] [-r]\n"
 		" "APP_NAME" [-v] -d <device> [-a -o <offset> -s <size>]\n"
 		" "APP_NAME" --version\n"
@@ -90,6 +94,10 @@ void CMain::printHelp() {
 		"  -f, --format <format>           file output format\n"
 		"                                  supported are gpx and txt\n"
 		"                                  default is txt\n"
+		"  -s, --size <size>               cyclist size in m\n"
+		"                                  (to calculate energy consumption)\n"
+		"  -w, --weight <weight>           cyclist plus bike weight in m\n"
+		"                                  (to calculate energy consumption)\n"
 		"  -r, --reset                     delete all tracks\n"
 		"  --set-distance <distance>       set the total km count to <distance>\n"
 		"  -a, --read-address              read flash memory and output hex values\n"
@@ -160,6 +168,14 @@ void CMain::processArgs() {
 		return;
 	}
 	
+	float bicycle_plus_body_weight, body_height;
+	string str;
+	m_parameters->getParam("size", str);
+	if(sscanf(str.c_str(), "%f", &body_height)!=1) body_height=-1.0;
+	m_parameters->getParam("weight", str);
+	if(sscanf(str.c_str(), "%f", &bicycle_plus_body_weight)!=1) bicycle_plus_body_weight=-1.0;
+	
+	
 	//open the device
 	CSerial serial;
 	serial.open(device.c_str());
@@ -167,7 +183,7 @@ void CMain::processArgs() {
 	
 	LOG(DEBUG, "Serial device %s opened", device.c_str());
 	
-	CNavilock navilock(serial);
+	CNavilock navilock(serial, bicycle_plus_body_weight, body_height);
 	
 	if(m_parameters->setTask("info")->bGiven) {
 		navilock.readTrackInfos();

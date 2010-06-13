@@ -63,6 +63,7 @@ void CPersistenceGpx::write(FILE* hFile, const ETrack& track) {
 		EPoint& first_p=track.points[0];
 		EPoint& last_p=track.points[track.point_count-1];
 		fprintf(hFile, "<wpt lat=\"%.10lf\" lon=\"%lf.10\">\n"
+			"  <geoidheight>%i</geoidheight>\n"
 			"  <ele>%i</ele>\n"
 			"  <time>%s</time>\n"
 			"  <speed>%.1f</speed>\n"
@@ -71,6 +72,7 @@ void CPersistenceGpx::write(FILE* hFile, const ETrack& track) {
 			"  <desc>Start %s %s</desc>\n"
 			"</wpt>\n"
 			"<wpt lat=\"%.10lf\" lon=\"%.10lf\">\n"
+			"  <geoidheight>%i</geoidheight>\n"
 			"  <ele>%i</ele>\n"
 			"  <time>%s</time>\n"
 			"  <speed>%.1f</speed>\n"
@@ -78,12 +80,12 @@ void CPersistenceGpx::write(FILE* hFile, const ETrack& track) {
 			"  <cmt>End%s</cmt>\n"
 			"  <desc>End %s %s</desc>\n"
 			"</wpt>\n"
-			, first_p.latitude.degree, first_p.longitude.degree, first_p.altitude
-			, time(track.start_date, track.start_time).c_str(), (float)first_p.speed*1.8
+			, first_p.latitude.degree, first_p.longitude.degree, first_p.altitude, first_p.altitude
+			, time(track.start_date, track.start_time).c_str(), first_p.getSpeed()
 			, track.start_date.toStr().c_str(), track.start_time.toStr().c_str(), time(track.start_date, track.start_time).c_str()
 			, track.start_date.toStr().c_str(), track.start_time.toStr().c_str()
-			, last_p.latitude.degree, last_p.longitude.degree, last_p.altitude
-			, time(track.end_date, track.end_time).c_str(), (float)last_p.speed*1.8
+			, last_p.latitude.degree, last_p.longitude.degree, last_p.altitude, last_p.altitude
+			, time(track.end_date, track.end_time).c_str(), last_p.getSpeed()
 			, track.end_date.toStr().c_str(), track.end_time.toStr().c_str(), time(track.end_date, track.end_time).c_str()
 			, track.end_date.toStr().c_str(), track.end_time.toStr().c_str()
 		);
@@ -102,6 +104,7 @@ void CPersistenceGpx::write(FILE* hFile, const ETrack& track) {
 		if(track.points[i].type!=0) {
 			++poi_id;
 			fprintf(hFile, "<wpt lat=\"%.10lf\" lon=\"%.10lf\">\n"
+				"  <geoidheight>%i</geoidheight>\n"
 				"  <ele>%i</ele>\n"
 				"  <time>%s</time>\n"
 				"  <name>POI %u</name>\n"
@@ -110,8 +113,8 @@ void CPersistenceGpx::write(FILE* hFile, const ETrack& track) {
 //				"Distance：  \n"       //TODO
 				"Time：%s %s</desc>\n"
 				"</wpt>\n"
-				, point.latitude.degree, point.longitude.degree, point.altitude
-				, time(point_date, point.time).c_str(), poi_id, (float)point.speed*1.8
+				, point.latitude.degree, point.longitude.degree, point.altitude, point.altitude
+				, time(point_date, point.time).c_str(), poi_id, point.getSpeed()
 				, point.altitude, point_date.toStr().c_str(),point.time.toStr().c_str());
 		}
 	}
@@ -131,13 +134,14 @@ void CPersistenceGpx::write(FILE* hFile, const ETrack& track) {
 			last_hour=point.time.hour;
 			fprintf(hFile, 
 				" <trkpt lat=\"%.10lf\" lon=\"%.10lf\">\n"
+				"  <geoidheight>%i</geoidheight>\n"
 				"  <ele>%i</ele>\n"
 				"  <time>%s</time>\n"
 				"  <speed>%.1f</speed>\n"
 				" </trkpt>\n"
 				, point.latitude.degree, point.longitude.degree
-				, point.altitude, time(point_date, point.time).c_str()
-				, (float)point.speed*1.8);
+				, point.altitude, point.altitude, time(point_date, point.time).c_str()
+				, point.getSpeed());
 		}
 	}
 	fprintf(hFile, " </trkseg>\n</trk>\n</gpx>\n\n");
@@ -164,32 +168,48 @@ void CPersistenceTxt::write(FILE* hFile, const ETrack& track) {
 	int driving_time=track_time-track.time_zero_speed;
 	
 	fprintf(hFile, 
-			"Points:                           %8u\n"
-			"Points of interest:               %8u\n"
-			"Start:                 %s %s\n"
-			"End:                   %s %s\n"
-			"Duration:        %25s\n"
-			"Driving time:    %25s\n"
-			"Distance:                      %8.3lf km\n"
-			"Performace distance:           %8.3lf km\n"
-			"Average speed:                  %5.1f km/h\n"
-			"Max speed:                      %5.1f km/h\n"
-			"Min altitude:                   %8i m\n"
-			"Max altitude:                   %8i m\n"
-			"Elevation:                      %8i m\n"
-			"Descent:                        %8i m\n"
-			"\n"
+			"Points:                               %8u\n"
+			"Points of interest:                   %8u\n"
+			"Start:                     %s %s\n"
+			"End:                       %s %s\n"
+			"Duration:            %25s\n"
+			"Driving time:        %25s\n"
+			"Distance:                          %8.3lf km\n"
+			"Performace distance:               %8.3lf km\n"
+			"Average speed:                      %5.1f km/h\n"
+			"Max speed:                          %5.1f km/h\n"
+			"Min altitude:                       %8i m\n"
+			"Max altitude:                       %8i m\n"
+			"Elevation:                          %8i m\n"
+			"Descent:                            %8i m\n"
 			, track.point_count-(uint)track.poi_count, (uint)track.poi_count
 			, track.start_date.toStr().c_str(), track.start_time.toStr().c_str()
 			, track.end_date.toStr().c_str(), track.end_time.toStr().c_str()
 			, deltaTimeToStr(track_time).c_str(), deltaTimeToStr(driving_time).c_str()
 			, track.tot_distance/1000.0, track.tot_distance/1000.0+(double)track.elevation/100.0
 			, (float)(track.tot_distance/1000.0)/((float)driving_time/3600.0)
-			, (float)track.max_speed*1.8
+			, track.getMaxSpeed()
 			, track.min_altitude, track.max_altitude
 			, track.elevation, track.descent
 			);
 	
+	if(track.hasEnergyCalculations()) {
+		fprintf(hFile,
+				"Cyclist height                      %8.2f m\n"
+				"Cyclist & bike weight              %8.1f kg\n"
+				"Energy consumption                 %8.1f kJ\n"
+				"                                 %8.1f kcal\n"
+				"Lost energy (through braking):     %8.1f kJ\n"
+				"                                 %8.1f kcal\n"
+				"Power:                              %8.1f W\n"
+				, track.body_height, track.bicycle_plus_body_weight
+				, track.getCyclistEnergyConsumption()/1000.0, track.getCyclistEnergyConsumption()/1000.0*CALORIES_PER_JOULE
+				, track.lost_energy/1000.0, track.lost_energy/1000.0*CALORIES_PER_JOULE
+				, track.power
+				);
+	}
+	
+	fprintf(hFile, "\n");
 	
 	//POI's
 	EDate point_date=track.start_date;
@@ -219,7 +239,6 @@ void CPersistenceTxt::write(FILE* hFile, const ETrack& track) {
 	last_hour=track.start_time.hour;
 	uint point_id=0;
 	
-	
 	//points
 	for(uint i=0; i<track.point_count; ++i) {
 		if(track.points[i].type==0) {
@@ -229,13 +248,16 @@ void CPersistenceTxt::write(FILE* hFile, const ETrack& track) {
 				point_date.increaseDay();
 			}
 			last_hour=point.time.hour;
+			float delta_time=1.0;
+			if(i>0) {
+				delta_time=getDeltaTimeSec(point_date, track.points[i-1].time, point_date, point.time);
+			}
 			fprintf(hFile, 
 				"Point %2u:  lat=%.10lf  lon=%.10lf  time=%s  alt=%4im  speed=%5.1fkm/h  delta_dist=%5.1lfm  dist=%7.3lfkm  x=%.10lfm  y=%.10lfm  z=%.10lfm\n"
 				, point_id, point.latitude.degree, point.longitude.degree
-				, point.time.toStr().c_str(), point.altitude, (float)point.speed*1.8
+				, point.time.toStr().c_str(), point.altitude, point.getSpeed()
 				, point.delta_dist, point.dist/1000.0
 				, point.point3d.x, point.point3d.y, point.point3d.z);
-			
 		}
 	}
 	fprintf(hFile, "\n");

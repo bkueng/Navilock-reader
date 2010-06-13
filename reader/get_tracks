@@ -48,10 +48,18 @@ variable_write() {
 
 
 DEVICE=$(get_config "$CONF_FILE" "DEVICE")
-
+HEIGHT=$(get_config "$CONF_FILE" "HEIGHT")
+WEIGHT=$(get_config "$CONF_FILE" "WEIGHT")
 {
-	[ ! "$DEVICE" ] && DEVICE=$(ask "/dev/ttyUSB1" "Enter device:") >/dev/null
+	[ ! "$DEVICE" ] && DEVICE=$(ask "/dev/ttyUSB1" "Enter device") >/dev/null
 	echo "DEVICE = $DEVICE"
+	
+	[ ! "$HEIGHT" ] && HEIGHT=$(ask "1.8" "Enter your height (in m)") >/dev/null
+	echo "HEIGHT = $HEIGHT"
+	
+	[ ! "$WEIGHT" ] && WEIGHT=$(ask "80" "Enter your plus your bike's weight (in kg)") >/dev/null
+	echo "WEIGHT = $WEIGHT"
+	
 } > "${CONF_FILE}~"
 
 # Move the new configuration file in place.
@@ -59,7 +67,7 @@ mv -f "${CONF_FILE}~" "${CONF_FILE}"
 
 mkdir -p "$TRACK_FOLDER"
 
-$NAVILOCK_READER --device "$DEVICE" --get-tracks --output "$TRACK_FOLDER" --new-only --format txt --format gpx --info
+$NAVILOCK_READER --device "$DEVICE" --get-tracks --output "$TRACK_FOLDER" --new-only --format txt --format gpx --size "$HEIGHT" --weight "$WEIGHT" --info
 
 
 
