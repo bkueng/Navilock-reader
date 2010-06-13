@@ -126,6 +126,7 @@ double pointDistanceSquare(const E3dPoint& p1, const E3dPoint& p2);
 
 
 struct EPoint {
+	//information from device
 	EDegree latitude;
 	EDegree longitude;
 	
@@ -139,11 +140,13 @@ struct EPoint {
 	
 	char type; //0: normal point, 1: POI
 	
+	
 	//additional infos, these are calculated
 	E3dPoint point3d;
 	double dist; //[m] from track start to and with this point
 	double delta_dist; //[m]
 	int delta_time; //[s]
+	float faltitude; //[m], smoothed altitude, average of 3 neighbour points
 	
 	//energy
 	float delta_energy; //[J] how much energy from the ciclyst was needed to get form point before to this point

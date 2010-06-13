@@ -151,7 +151,7 @@ void EPoint::calcAdditional(const EPoint* point_before, float bicycle_plus_body_
 			float en_speed=0.5*bicycle_plus_body_weight*speed_square;
 			float en_air_drag=0.5*AIR_DENSITY*body_height*AREA_COEFFICIENT*delta_dist*AIR_DRAG_COEFFICIENT*speed_square;
 			float en_wheel_drag=bicycle_plus_body_weight*PLANET_G*WHEEL_DRAG_COEFFICIENT*delta_dist;
-			float en_pot=bicycle_plus_body_weight*PLANET_G*(float)(altitude-point_before->altitude);
+			float en_pot=bicycle_plus_body_weight*PLANET_G*(faltitude-point_before->faltitude);
 			
 			delta_energy=en_speed - (en_speed_before-en_air_drag-en_wheel_drag-en_pot);
 			
@@ -171,6 +171,16 @@ void ETrack::calcAdditional() {
 		min_altitude=99999;
 		time_zero_speed=max_altitude=elevation=descent=0;
 		EPoint* last_point=NULL;
+		
+		//calc smoothed altitudes (average of 3 altitudes)
+		if(point_count>0) {
+			points[0].faltitude=points[0].altitude;
+			for(int i=1; i<point_count-1; ++i) {
+				points[i].faltitude=(float)(points[i-1].altitude+points[i].altitude+points[i+1].altitude)/3.0;
+			}
+			points[point_count-1].faltitude=points[point_count-1].altitude;
+		}
+		
 		
 		for(uint i=0; i<point_count; ++i) {
 			points[i].calcAdditional(last_point, bicycle_plus_body_weight, body_height);
