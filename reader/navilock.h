@@ -28,13 +28,22 @@ typedef unsigned char uchar;
 #define POINT_START_ADDR 			3584 				//address with the first point
 #define TIME_BETWEEN_POINTS 		5 					//[s] approximate delta time between two saved points
 
+#define SPEED_FACTOR				1.8					//calculate km/h from device speed
+
+
 
 struct ETime {
 	char hour;
 	char min;
 	char sec;
 	
-	int toSec() { return(((int)hour*60+(int)min)*60+(int)sec); }
+	int toSec() const { return(((int)hour*60+(int)min)*60+(int)sec); }
+	
+	int diff(const ETime& time_after) const {
+		int ret=time_after.toSec()-toSec();
+		if(ret<0) ret+=24*60*60;
+		return(ret);
+	}
 	
 	string toStr(const char* format="%02i:%02i:%02i") const {
 		char b[15];
@@ -113,20 +122,25 @@ double pointDistanceSquare(const E3dPoint& p1, const E3dPoint& p2);
 
 
 struct EPoint {
+	//information from device
 	EDegree latitude;
 	EDegree longitude;
 	
 	ETime time;
 	
 	int altitude; //[m]
+	
 	uchar speed; //*1.8=km/h
+	float getSpeed() const { return((float)speed*SPEED_FACTOR); } //[km/h]
+	float getSpeedMS() const { return((float)speed*SPEED_FACTOR/3.6); } //[m/s]
 	
 	char type; //0: normal point, 1: POI
+	
 	
 	//additional infos, these are calculated
 	E3dPoint point3d;
 	double dist; //[m] from track start to and with this point
-	double delta_dist; //[m] 
+	double delta_dist; //[m]
 	
 	//point_before->calcAdditional() must be called before
 	void calcAdditional(const EPoint* point_before);
@@ -135,7 +149,8 @@ struct EPoint {
 
 
 struct ETrack {
-	ETrack() : bGot_info(false), points(NULL), tot_distance(-1.0) {}
+	ETrack()
+	: bGot_info(false), points(NULL), tot_distance(-1.0) {}
 	~ETrack() { if(points) delete[](points); }
 	
 	bool bGot_info;
@@ -154,6 +169,7 @@ struct ETrack {
 	//additional infos, calculated
 	double tot_distance;
 	uchar max_speed;
+	float getMaxSpeed() const { return((float)max_speed*SPEED_FACTOR); } //[km/h]
 	int min_altitude;
 	int max_altitude;
 	int elevation; //[m] in total
@@ -165,6 +181,7 @@ struct ETrack {
 	
 	//[s]
 	int tripDuration() const { return(getDeltaTimeSec(start_date, start_time, end_date, end_time)); }
+	
 };
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////
