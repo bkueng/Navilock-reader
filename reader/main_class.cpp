@@ -81,20 +81,20 @@ void CMain::printHelp() {
 		"  -d, --device <device>           set the device to read from/write to\n"
 		"                                  <device>: e.g. /dev/ttyUSB1\n"
 		"  -t, --get-tracks                read the tracks and save them to file\n"
-		"  -o, --output                    output path for writing tracks\n"
+		"    -o, --output                  output path for writing tracks\n"
 		"                                  each track will be saved to a file\n"
 		"                                  in the form \'trace_YYYY-MM-DD-HH.MM.SS.gpx\'\n"
 		"                                  if not set, stdout will be used\n"
-		"  -n, --new-only                  read only tracks that don't already exist in\n"
+		"    -n, --new-only                read only tracks that don't already exist in\n"
 		"                                  the output folder\n"
-		"  -f, --format <format>           file output format\n"
+		"    -f, --format <format>         file output format\n"
 		"                                  supported are gpx and txt\n"
 		"                                  default is txt\n"
 		"  -r, --reset                     delete all tracks\n"
 		"  --set-distance <distance>       set the total km count to <distance>\n"
 		"  -a, --read-address              read flash memory and output hex values\n"
-		"     -o, --offset                 address offset\n"
-		"     -s, --size                   size to read in bytes\n"
+		"    -o, --offset                  address offset\n"
+		"    -s, --size                    size to read in bytes\n"
 		"  -i, --info                      print track information on device\n"
 		"  -v, --verbose                   print debug messages\n"
 		"  -h, --help                      print this message\n"
@@ -280,25 +280,25 @@ void CMain::processArgs() {
 		string soffset, scount;
 		m_parameters->getParam("offset", soffset);
 		m_parameters->getParam("size", scount);
+		
 		if(sscanf(soffset.c_str(), "%u", &offset)!=1) offset=0;
-		if(sscanf(scount.c_str(), "%u", &count)!=1) count=16;
+		if(sscanf(scount.c_str(), "%u", &count)!=1 || count==0) count=16;
 		char buffer[50];
 		bool bFirst=true;
-		
 		for(uint addr=offset; addr<offset+count && ret!=-1; addr+=ret) {
 			
 			ret=navilock.readAddr(addr, buffer, sizeof(buffer));
 			
 			if(bFirst && ret>0) {
-				printf("      ");
+				printf("        ");
 				for(int i=0; i<ret; ++i) printf("%2i ", i);
-				printf("\n     ");
+				printf("\n       ");
 				for(int i=0; i<ret; ++i) printf("---");
 				printf("\n");
 				bFirst=false;
 			}
 			
-			printf("%4i: ", addr);
+			printf("%6i: ", addr);
 			for(int i=0; i<ret; ++i) printf("%02X ", (int)(unsigned char)buffer[i]);
 			printf("\n");
 		}
