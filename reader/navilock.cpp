@@ -288,7 +288,8 @@ void CNavilock::readTrack(size_t idx) {
 				point.time.min=buffer[11];
 				point.time.sec=buffer[12];
 				//altitude
-				point.altitude=(int)READ_USHORT(buffer, 14);
+				point.altitude=(short)READ_USHORT(buffer, 14);
+				
 				
 				LOG(DEBUG, "  Point %2u: lat: %s lon: %s type: %i, time: %s, alt: %im, speed: %3.1fkm/h", 
 						i, point.latitude.toStr().c_str(), point.longitude.toStr().c_str(),

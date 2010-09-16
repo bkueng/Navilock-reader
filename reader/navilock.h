@@ -70,7 +70,14 @@ string deltaTimeToStr(int sec);
 struct EDegree {
 	double degree;
 	
-	void set(int degrees, int min, float sec) { degree=(double)degrees+((double)sec/60.0+(double)min)/60.0; }
+	/* TODO: check if negative values are always right */
+	void set(int degrees, int min, float sec) { 
+		if(degrees >= 1000) { //negative
+			degree=-((double)degrees-1000+((double)sec/60.0+(double)min)/60.0); 
+		} else {
+			degree=(double)degrees+((double)sec/60.0+(double)min)/60.0; 
+		}
+	}
 	
 	/* format is 47.6546543456 (in degrees) */
 	string toStr() {
