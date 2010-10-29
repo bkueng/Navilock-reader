@@ -19,6 +19,9 @@
 #include "logging.h"
 #endif
 
+#include <cstdarg>
+#include <cstdio>
+
 
 /*********************************************************************//*
  * class Exception

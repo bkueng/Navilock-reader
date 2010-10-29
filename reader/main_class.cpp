@@ -171,7 +171,7 @@ void CMain::processArgs() {
 	
 	if(m_parameters->setTask("info")->bGiven) {
 		navilock.readTrackInfos();
-		printf("Found %u Tracks on device %s\n", navilock.tracks().size(), device.c_str());
+		printf("Found %u Tracks on device %s\n", (uint)navilock.tracks().size(), device.c_str());
 		
 		if(navilock.tracks().size()>0) {
 			printf(" #    Points       POI      Addr          Start         Duration\n");
@@ -180,7 +180,7 @@ void CMain::processArgs() {
 		for(size_t i=0; i<navilock.tracks().size(); ++i) {
 			const ETrack& track=navilock.tracks()[i];
 			printf("%2u  %8u  %8u  %8u   %s %s  %s\n"
-					, i, track.point_count-(uint)track.poi_count, (uint)track.poi_count, track.start_addr, track.start_date.toStr().c_str(),
+					, (uint)i, track.point_count-(uint)track.poi_count, (uint)track.poi_count, track.start_addr, track.start_date.toStr().c_str(),
 					track.start_time.toStr().c_str(),
 					deltaTimeToStr(getDeltaTimeSec(track.start_date, track.start_time,
 							track.end_date, track.end_time)).c_str());
