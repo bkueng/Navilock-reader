@@ -5,3 +5,6 @@
 *~
 /communication/sniffed
 *.log
+
+*.cproject
+*.project
