@@ -81,20 +81,20 @@ void CMain::printHelp() {
 		"  -d, --device <device>           set the device to read from/write to\n"
 		"                                  <device>: e.g. /dev/ttyUSB1\n"
 		"  -t, --get-tracks                read the tracks and save them to file\n"
-		"  -o, --output                    output path for writing tracks\n"
+		"    -o, --output                  output path for writing tracks\n"
 		"                                  each track will be saved to a file\n"
 		"                                  in the form \'trace_YYYY-MM-DD-HH.MM.SS.gpx\'\n"
 		"                                  if not set, stdout will be used\n"
-		"  -n, --new-only                  read only tracks that don't already exist in\n"
+		"    -n, --new-only                read only tracks that don't already exist in\n"
 		"                                  the output folder\n"
-		"  -f, --format <format>           file output format\n"
+		"    -f, --format <format>         file output format\n"
 		"                                  supported are gpx and txt\n"
 		"                                  default is txt\n"
 		"  -r, --reset                     delete all tracks\n"
 		"  --set-distance <distance>       set the total km count to <distance>\n"
 		"  -a, --read-address              read flash memory and output hex values\n"
-		"     -o, --offset                 address offset\n"
-		"     -s, --size                   size to read in bytes\n"
+		"    -o, --offset                  address offset\n"
+		"    -s, --size                    size to read in bytes\n"
 		"  -i, --info                      print track information on device\n"
 		"  -v, --verbose                   print debug messages\n"
 		"  -h, --help                      print this message\n"
@@ -171,7 +171,7 @@ void CMain::processArgs() {
 	
 	if(m_parameters->setTask("info")->bGiven) {
 		navilock.readTrackInfos();
-		printf("Found %u Tracks on device %s\n", navilock.tracks().size(), device.c_str());
+		printf("Found %u Tracks on device %s\n", (uint)navilock.tracks().size(), device.c_str());
 		
 		if(navilock.tracks().size()>0) {
 			printf(" #    Points       POI      Addr          Start         Duration\n");
@@ -180,7 +180,7 @@ void CMain::processArgs() {
 		for(size_t i=0; i<navilock.tracks().size(); ++i) {
 			const ETrack& track=navilock.tracks()[i];
 			printf("%2u  %8u  %8u  %8u   %s %s  %s\n"
-					, i, track.point_count-(uint)track.poi_count, (uint)track.poi_count, track.start_addr, track.start_date.toStr().c_str(),
+					, (uint)i, track.point_count-(uint)track.poi_count, (uint)track.poi_count, track.start_addr, track.start_date.toStr().c_str(),
 					track.start_time.toStr().c_str(),
 					deltaTimeToStr(getDeltaTimeSec(track.start_date, track.start_time,
 							track.end_date, track.end_time)).c_str());
@@ -188,6 +188,18 @@ void CMain::processArgs() {
 		}
 		
 		printf("Total distance: %.1lfkm\n", navilock.totalDistance());
+		
+		uint last_addr=POINT_START_ADDR, last_point_count=0;
+		if(navilock.tracks().size()>0) {
+			const ETrack& last_track=*(navilock.tracks().end()-1);
+			last_addr=last_track.start_addr;
+			last_point_count=last_track.point_count;
+		}
+		uint tot_points=(DEVICE_MEM_SIZE-POINT_START_ADDR)/POINT_DATA_LEN;
+		uint point_free_count=(DEVICE_MEM_SIZE-last_addr)/POINT_DATA_LEN-last_point_count;
+		printf("Free memory: %.1f%% = %u points (~ %s)\n", (float)point_free_count/(float)tot_points*100.0f,
+				point_free_count, deltaTimeToStr(((TIME_BETWEEN_POINTS*point_free_count)/60)*60).c_str());
+		
 	}
 	
 	if(m_parameters->setTask("get-tracks")->bGiven) {
@@ -268,25 +280,25 @@ void CMain::processArgs() {
 		string soffset, scount;
 		m_parameters->getParam("offset", soffset);
 		m_parameters->getParam("size", scount);
+		
 		if(sscanf(soffset.c_str(), "%u", &offset)!=1) offset=0;
-		if(sscanf(scount.c_str(), "%u", &count)!=1) count=16;
+		if(sscanf(scount.c_str(), "%u", &count)!=1 || count==0) count=16;
 		char buffer[50];
 		bool bFirst=true;
-		
 		for(uint addr=offset; addr<offset+count && ret!=-1; addr+=ret) {
 			
 			ret=navilock.readAddr(addr, buffer, sizeof(buffer));
 			
 			if(bFirst && ret>0) {
-				printf("      ");
+				printf("        ");
 				for(int i=0; i<ret; ++i) printf("%2i ", i);
-				printf("\n     ");
+				printf("\n       ");
 				for(int i=0; i<ret; ++i) printf("---");
 				printf("\n");
 				bFirst=false;
 			}
 			
-			printf("%4i: ", addr);
+			printf("%6i: ", addr);
 			for(int i=0; i<ret; ++i) printf("%02X ", (int)(unsigned char)buffer[i]);
 			printf("\n");
 		}
