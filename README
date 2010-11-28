@@ -6,13 +6,19 @@ GPS Tracking device under linux. The main tasks are to store tracks
 in gpx or text file format and deleting old tracks.
 
 
-== compile & install the driver ==
+== compile & install the kernel module ==
 
-to communicate with the device, a driver needs to be built and started, 
+Note: If you have kernel 2.6.32 or newer (with option "USB Modem (CDC ACM) support"
+enabled) you don't need the included kernel module from this package. Just connect the 
+device.
+if you run dmesg you should see something like this:
+	cdc_acm 2-1.2:1.0: ttyACM0: USB ACM device
+if so, the device is /dev/ttyACM0
+
+To communicate with the device, a kernel module needs to be built and started, 
 before you can download any tracks.
 
-
-buid the driver with (kernel source headers must be installed):
+build the module with (kernel source headers must be installed):
 $ cd serial_driver
 $ make
 
@@ -20,30 +26,23 @@ if you see something like:
 make: Nothing to be done for `default'.
 you need to install the kernel source
 
-now you can install the driver with
+now you can install the module with
 # sudo make install
 
 plug in the device and check if everything works:
 $ dmesg 
 output should contain something like:
 usb 3-2: navilock converter now attached to ttyUSB1
--> usbserial file:
-# cat /proc/tty/driver/usbserial
-0: module:navilock name:"navilock" vendor:1ee4 product:0001 num_ports:1 port:1 path:usb-0000:00:1d.2-2
-1: module:navilock name:"navilock" vendor:1ee4 product:0001 num_ports:1 port:1 path:usb-0000:00:1d.2-2
 
-two new devices under /dev should have been created. Most likely /dev/ttyUSB0 and /dev/ttyUSB1. 
+= run the kernel module without installation =
 
-
-= run the driver without installation =
-
-this driver depends on the usbserial driver, so you need to load it first:
+this module depends on the usbserial module, so you need to load it first:
 # modprobe usbserial
 
-load navilock driver:
+load navilock module:
 # insmod navilock.ko
 
-unload the driver:
+unload the module:
 # rmmod navilock
 
 
@@ -64,6 +63,8 @@ $ ./navilock_reader
 without any arguments to see the supported parameters. If you are not using any other 
 usb serial devices, the device most likely is called /dev/ttyUSB1.
 
+the script get_tracks can be used to get the newest tracks and save them to reader/tracks/
+
 
 
 == firmware ==
@@ -76,10 +77,6 @@ the navilock reader was tested with the firmware
 
 if you have any improvements or suggestions you are welcome to 
 implement them and/or contact me
-
-
-
-
 
 
 
