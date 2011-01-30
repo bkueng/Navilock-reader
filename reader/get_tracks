@@ -50,7 +50,7 @@ variable_write() {
 DEVICE=$(get_config "$CONF_FILE" "DEVICE")
 
 {
-	[ ! "$DEVICE" ] && DEVICE=$(ask "/dev/ttyUSB1" "Enter device:") >/dev/null
+	[ ! "$DEVICE" ] && DEVICE=$(ask "/dev/ttyACM0" "Enter device:") >/dev/null
 	echo "DEVICE = $DEVICE"
 } > "${CONF_FILE}~"
 
