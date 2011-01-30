@@ -56,7 +56,7 @@ bool EDate::isLeapYear(ushort year) {
 
 void EDate::increaseDay(int days) {
 	char day_count=dayCountFromMonth(month, year);
-	if(day+=days > day_count) {
+	if((day+=days) > day_count) {
 		day-=day_count;
 		if(++month>12) {
 			++year;
