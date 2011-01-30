@@ -6,52 +6,19 @@ GPS Tracking device under linux. The main tasks are to store tracks
 in gpx or text file format and deleting old tracks.
 
 
-== compile & install the kernel module ==
+== kernel module ==
 
-Note: If you have kernel 2.6.32 or newer (with option "USB Modem (CDC ACM) support"
-enabled) you don't need the included kernel module from this package. Just connect the 
-device.
-if you run dmesg you should see something like this:
+If you use kernel 2.6.31 or older you have to use version 1.0-x and use the included kernel module to be able to communicate with the device.
+
+To see if the device is recogniced properly, plug it in and run dmesg. You should see something like this:
 	cdc_acm 2-1.2:1.0: ttyACM0: USB ACM device
 if so, the device is /dev/ttyACM0
-
-To communicate with the device, a kernel module needs to be built and started, 
-before you can download any tracks.
-
-build the module with (kernel source headers must be installed):
-$ cd serial_driver
-$ make
-
-if you see something like:
-make: Nothing to be done for `default'.
-you need to install the kernel source
-
-now you can install the module with
-# sudo make install
-
-plug in the device and check if everything works:
-$ dmesg 
-output should contain something like:
-usb 3-2: navilock converter now attached to ttyUSB1
-
-= run the kernel module without installation =
-
-this module depends on the usbserial module, so you need to load it first:
-# modprobe usbserial
-
-load navilock module:
-# insmod navilock.ko
-
-unload the module:
-# rmmod navilock
-
 
 
 == navilock reader ==
 
 the navilock reader is used to read the tracks from the navilock device and stores them
 on the harddisk.
-
 
 compile navilock reader:
 $ cd reader
