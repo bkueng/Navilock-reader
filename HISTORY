@@ -1,3 +1,9 @@
++ Release v1.1
+
+- remove the kernel module (obsolete since kernel 2.6.32)
+! some minor fixes
+
+
 + Release v1.0-p2
 
 + print free memory when called with --info
