@@ -142,7 +142,13 @@ void ETrack::calcAdditional() {
 		time_zero_speed=max_altitude=elevation=descent=0;
 		EPoint* last_point=NULL;
 		
-		for(uint i=0; i<point_count; ++i) {
+		uint i=0;
+		while(i<point_count && points[i].altitude == 0) { //skip the first points with height 0
+			points[i].calcAdditional(last_point);
+			++i;
+		}
+		if(i==point_count) i=0;
+		for(; i<point_count; ++i) {
 			points[i].calcAdditional(last_point);
 			tot_distance+=points[i].delta_dist;
 			if(points[i].speed>max_speed) max_speed=points[i].speed;
