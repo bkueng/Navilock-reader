@@ -98,16 +98,18 @@ string deltaTimeToStr(int sec) {
 
 
 E3dPoint::E3dPoint(const EPoint& p) {
-	double d=EllipsoidDistWGS84(p.latitude.degree)+(double)p.altitude;
-	z=d*sin(p.latitude.degree/180.0*M_PI);
-	double s=sqrt(d*d-z*z);
-	x=s*sin(p.longitude.degree/180.0*M_PI);
-	y=s*cos(p.longitude.degree/180.0*M_PI);
+	double N=EllipsoidDistWGS84(p.latitude.degree);
+	double cos_lat=cos(p.latitude.degree/180.0*M_PI);
+	y=(N+(double)p.altitude)*cos_lat*cos(p.longitude.degree/180.0*M_PI);
+	x=(N+(double)p.altitude)*cos_lat*sin(p.longitude.degree/180.0*M_PI);
+	double bovera=EARTH_SEMI_MINOR_AXIS_B/EARTH_SEMI_MAJOR_AXIS_A;
+	z=(bovera*bovera*N+(double)p.altitude)*sin(p.latitude.degree/180.0*M_PI);
+	
 }
 
 double E3dPoint::EllipsoidDistWGS84(double latitude) const {
 	double sin_lat=sin(latitude/180.0*M_PI);
-	double bovera=EARTH_SEMI_MAJOR_AXIS_B/EARTH_SEMI_MAJOR_AXIS_A;
+	double bovera=EARTH_SEMI_MINOR_AXIS_B/EARTH_SEMI_MAJOR_AXIS_A;
 	return(EARTH_SEMI_MAJOR_AXIS_A / sqrt(1.0-sin_lat*sin_lat*(1.0-bovera*bovera)));
 }
 

@@ -21,7 +21,7 @@
 typedef unsigned char uchar;
 
 #define EARTH_SEMI_MAJOR_AXIS_A 	6378137.0  			//[m] from WGS-84 reference ellipsoid
-#define EARTH_SEMI_MAJOR_AXIS_B 	6356752.314  		//[m]
+#define EARTH_SEMI_MINOR_AXIS_B 	6356752.314  		//[m]
 
 #define DEVICE_MEM_SIZE 			(2*1024*1024) 		//[bytes], 2MB
 #define POINT_DATA_LEN 				16 					//[bytes] how much space one point uses
