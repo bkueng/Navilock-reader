@@ -208,6 +208,8 @@ void CMain::processArgs() {
 		CPersistence* persistence;
 		string file_ext="";
 		string folder="";
+		int written_files_count=0;
+		bool bFirst_loop=true;
 		
 		m_parameters->getParam("output", folder);
 		if(folder.length()>0 && folder.substr(folder.length()-1,1)!=PATH_SEP) folder+=PATH_SEP;
@@ -266,6 +268,7 @@ void CMain::processArgs() {
 								ASSERT_THROW_e(hFile, EFILE_ERROR, "Failed to open the file %s", file.c_str());
 							}
 							persistence->write(hFile, track);
+							if(bFirst_loop) ++written_files_count;
 							if(folder.length()>0) {
 								fclose(hFile);
 							}
@@ -275,7 +278,9 @@ void CMain::processArgs() {
 				
 				delete(persistence);
 			}
+			bFirst_loop=false;
 		} while(m_parameters->getParam("format", format));
+		printf("Transferred %i track(s) from Device\n", written_files_count);
 	}
 	
 	
