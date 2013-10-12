@@ -17,6 +17,7 @@
 #include <cstring>
 #include <sstream>
 
+#include <unistd.h>
 
 #define IO_BUFFER_SIZE 128
 
