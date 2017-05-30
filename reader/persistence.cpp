@@ -81,11 +81,11 @@ void CPersistenceGpx::write(FILE* hFile, const ETrack& track) {
 			"  <desc>End %s %s</desc>\n"
 			"</wpt>\n"
 			, first_p.latitude.degree, first_p.longitude.degree, first_p.altitude, first_p.altitude
-			, time(track.start_date, track.start_time).c_str(), first_p.getSpeed()
+			, time(track.start_date, track.start_time).c_str(), first_p.getSpeedMS()
 			, track.start_date.toStr().c_str(), track.start_time.toStr().c_str(), time(track.start_date, track.start_time).c_str()
 			, track.start_date.toStr().c_str(), track.start_time.toStr().c_str()
 			, last_p.latitude.degree, last_p.longitude.degree, last_p.altitude, last_p.altitude
-			, time(track.end_date, track.end_time).c_str(), last_p.getSpeed()
+			, time(track.end_date, track.end_time).c_str(), last_p.getSpeedMS()
 			, track.end_date.toStr().c_str(), track.end_time.toStr().c_str(), time(track.end_date, track.end_time).c_str()
 			, track.end_date.toStr().c_str(), track.end_time.toStr().c_str()
 		);
@@ -114,7 +114,7 @@ void CPersistenceGpx::write(FILE* hFile, const ETrack& track) {
 				"Time：%s %s</desc>\n"
 				"</wpt>\n"
 				, point.latitude.degree, point.longitude.degree, point.altitude, point.altitude
-				, time(point_date, point.time).c_str(), poi_id, point.getSpeed()
+				, time(point_date, point.time).c_str(), poi_id, point.getSpeedMS()
 				, point.altitude, point_date.toStr().c_str(),point.time.toStr().c_str());
 		}
 	}
@@ -141,7 +141,7 @@ void CPersistenceGpx::write(FILE* hFile, const ETrack& track) {
 				" </trkpt>\n"
 				, point.latitude.degree, point.longitude.degree
 				, point.altitude, point.altitude, time(point_date, point.time).c_str()
-				, point.getSpeed());
+				, point.getSpeedMS());
 		}
 	}
 	fprintf(hFile, " </trkseg>\n</trk>\n</gpx>\n\n");

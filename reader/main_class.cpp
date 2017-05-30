@@ -59,6 +59,7 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 	m_parameters->addParam("output", 'o', "", "get-tracks");
 	m_parameters->addSwitch("new-only", 'n', "get-tracks");
 	m_parameters->addParam("format", 'f', "txt", "get-tracks");
+	m_parameters->addParam("track", 'k', "", "get-tracks");
 	
 	m_parameters->addTask("reset", 'r');
 	
@@ -74,7 +75,7 @@ void CMain::parseCommandLine(int argc, char *argv[]) {
 
 void CMain::printHelp() {
 	printf("Usage:\n"
-		" "APP_NAME" [-v] -d <device> [-t [-o <path> [-n]] [-f <format>]] [-i]\n"
+		" "APP_NAME" [-v] -d <device> [-t [-o <path> [-n]] [-f <format>] [-k <id>]] [-i]\n"
 		" "APP_NAME" [-v] -d <device> [--set-distance <distance>] [-r]\n"
 		" "APP_NAME" [-v] -d <device> [-a -o <offset> -s <size>]\n"
 		" "APP_NAME" --version\n"
@@ -90,6 +91,7 @@ void CMain::printHelp() {
 		"    -f, --format <format>         file output format\n"
 		"                                  supported are gpx and txt\n"
 		"                                  default is txt\n"
+		"    -k, --track <id>              read only track with index <id>\n"
 		"  -r, --reset                     delete all tracks\n"
 		"  --set-distance <distance>       set the total km count to <distance>\n"
 		"  -a, --read-address              read flash memory and output hex values\n"
@@ -206,13 +208,25 @@ void CMain::processArgs() {
 		CPersistence* persistence;
 		string file_ext="";
 		string folder="";
+		int written_files_count=0;
+		bool bFirst_loop=true;
+		
 		m_parameters->getParam("output", folder);
 		if(folder.length()>0 && folder.substr(folder.length()-1,1)!=PATH_SEP) folder+=PATH_SEP;
 		bool bNew_only=m_parameters->getSwitch("new-only");
 		
 		navilock.readTrackInfos();
+		
 		string format;
 		m_parameters->getParam("format", format);
+		
+		int track_id=-1;
+		string track_id_str;
+		if(m_parameters->getParam("track", track_id_str)) {
+			ASSERT_THROW_s(sscanf(track_id_str.c_str(), "%i", &track_id)==1, "Failed to parse the track id (%s)", track_id_str.c_str());
+			ASSERT_THROW_s(track_id>=0 && track_id<(int)navilock.tracks().size()
+					, "Track id out of bounds (0 <= id < %i)", (int)navilock.tracks().size());
+		}
 		
 		do {
 			toLower(format);
@@ -233,12 +247,19 @@ void CMain::processArgs() {
 			if(persistence) {
 				FILE* hFile=stdout;
 				
-				for(size_t i=0; i<navilock.tracks().size(); ++i) {
-					const ETrack& track=navilock.tracks()[i];
+				vector<size_t> track_indexes;
+				if(track_id == -1) {
+					for(size_t i=0; i<navilock.tracks().size(); ++i) track_indexes.push_back(i);
+				} else {
+					track_indexes.push_back((size_t)track_id);
+				}
+				for(size_t i=0; i<track_indexes.size(); ++i) {
+					
+					const ETrack& track=navilock.tracks()[track_indexes[i]];
 					string date_time=track.start_date.toStr("%04u-%02i-%02i")
 									+"-"+track.start_time.toStr("%02i.%02i.%02i");
 					if(folder.length()==0 || !bNew_only || (bNew_only && findFile(folder, date_time, file_ext)=="")) {
-						navilock.readTrack(i);
+						navilock.readTrack(track_indexes[i]);
 						
 						if(track.bGot_info) {
 							if(folder.length()>0) {
@@ -247,6 +268,7 @@ void CMain::processArgs() {
 								ASSERT_THROW_e(hFile, EFILE_ERROR, "Failed to open the file %s", file.c_str());
 							}
 							persistence->write(hFile, track);
+							if(bFirst_loop) ++written_files_count;
 							if(folder.length()>0) {
 								fclose(hFile);
 							}
@@ -256,7 +278,9 @@ void CMain::processArgs() {
 				
 				delete(persistence);
 			}
+			bFirst_loop=false;
 		} while(m_parameters->getParam("format", format));
+		printf("Transferred %i track(s) from Device\n", written_files_count);
 	}
 	
 	
