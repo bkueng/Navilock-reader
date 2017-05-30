@@ -62,7 +62,7 @@ void CPersistenceGpx::write(FILE* hFile, const ETrack& track) {
 	if(track.point_count>0) {
 		EPoint& first_p=track.points[0];
 		EPoint& last_p=track.points[track.point_count-1];
-		fprintf(hFile, "<wpt lat=\"%.10lf\" lon=\"%lf.10\">\n"
+		fprintf(hFile, "<wpt lat=\"%.10lf\" lon=\"%.10lf\">\n"
 			"  <geoidheight>%i</geoidheight>\n"
 			"  <ele>%i</ele>\n"
 			"  <time>%s</time>\n"
