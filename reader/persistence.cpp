@@ -175,7 +175,7 @@ void CPersistenceTxt::write(FILE* hFile, const ETrack& track) {
 			"Duration:            %25s\n"
 			"Driving time:        %25s\n"
 			"Distance:                          %8.3lf km\n"
-			"Performace distance:               %8.3lf km\n"
+			"Performance distance:              %8.3lf km\n"
 			"Average speed:                      %5.1f km/h\n"
 			"Max speed:                          %5.1f km/h\n"
 			"Min altitude:                       %8i m\n"
