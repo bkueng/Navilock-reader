@@ -16,6 +16,7 @@
 
 #include <cstring>
 #include <sstream>
+#include <unistd.h>
 
 
 #define IO_BUFFER_SIZE 128
@@ -342,7 +343,7 @@ void CNavilock::deleteTracks() {
 		if(ret==3) printf("\b\b\b%2i%%", (int)(unsigned char)response[2]);
 		fflush(stdout);
 		
-		usleep(200000);
+		::usleep(200000);
 	}
 	printf("\n");
 }
