@@ -1,3 +1,10 @@
++ Release v1.2
+
+- Build fixes
+- add --get-tracks option to read individual track
+- ignore 0-altitude points at the beginning for distance/min/max-altitude calculation
+
+
 + Release v1.1
 
 - remove the kernel module (obsolete since kernel 2.6.32)
