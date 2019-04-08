@@ -19,6 +19,9 @@
 #include <unistd.h>
 
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 
 #define IO_BUFFER_SIZE 128
 

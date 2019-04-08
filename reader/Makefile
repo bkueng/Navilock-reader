@@ -25,8 +25,8 @@ SOURCES := $(wildcard *.cpp) $(wildcard *.c)
 
 
 # Generic flags for the C/CPP compiler.
-CFLAGS := 			-pipe -O2 -Wall -D'APP_NAME="$(APP_NAME)"'
-CFLAGS_debug := 		-pipe -g -Wall -D'APP_NAME="$(APP_NAME)"' -D_DEBUG
+CFLAGS := 			-pipe -O2 -Wall -D'APP_NAME="$(APP_NAME)"' -std=gnu++98
+CFLAGS_debug := 		-pipe -g -Wall -D'APP_NAME="$(APP_NAME)"' -std=gnu++98 -D_DEBUG
 CXXFLAGS := 			$(CFLAGS)
 CXXFLAGS_debug := 		$(CFLAGS_debug)
 GCC := 				gcc
